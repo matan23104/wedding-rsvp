@@ -1,0 +1,1152 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ניהול חתונה · מתן ופריאל</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<style>
+:root {
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --ink: #2c2419;
+  --ink-soft: #6b5d4a;
+  --ink-faint: #a89680;
+  --accent: #8b6f47;
+  --accent-dark: #6b5335;
+  --accent-soft: #d4bc94;
+  --line: #e8e0d3;
+  --success: #4a7c59;
+  --danger: #a84343;
+  --pending: #c4923a;
+  --radius: 4px;
+  --shadow-sm: 0 1px 2px rgba(139, 111, 71, 0.05);
+  --shadow: 0 4px 12px rgba(139, 111, 71, 0.08);
+  --shadow-lg: 0 10px 30px rgba(139, 111, 71, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Assistant', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+  background-image:
+    radial-gradient(at 20% 20%, rgba(212, 188, 148, 0.08) 0%, transparent 50%),
+    radial-gradient(at 80% 80%, rgba(139, 111, 71, 0.05) 0%, transparent 50%);
+}
+
+.serif { font-family: 'Frank Ruhl Libre', serif; }
+
+/* ═════ Login Screen ═════ */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 3rem 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.login-card h1 {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+.login-card .subtitle {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  letter-spacing: 0.05em;
+}
+.login-card .decor {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+/* ═════ Layout ═════ */
+.app { display: none; }
+.app.active { display: block; }
+
+header.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+}
+.topbar h1 {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.topbar .subtitle {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.topbar-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+/* ═════ Tabs ═════ */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+.tab {
+  padding: 0.85rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+  position: relative;
+}
+.tab:hover { color: var(--ink); }
+.tab.active {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+.tab .badge {
+  display: inline-block;
+  margin-right: 0.4rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.tab-content { display: none; animation: fadeIn 0.3s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ═════ Buttons ═════ */
+.btn {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent-dark); }
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: transparent;
+}
+.btn-danger:hover { background: rgba(168, 67, 67, 0.08); }
+.btn-icon {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ═════ Forms ═════ */
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.1);
+}
+
+/* ═════ Cards ═════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.card h2 {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+.card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ═════ Stats Grid ═════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 3px; height: 100%;
+  background: var(--accent);
+}
+.stat.confirmed::before { background: var(--success); }
+.stat.declined::before { background: var(--danger); }
+.stat.pending::before { background: var(--pending); }
+.stat .label {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+}
+.stat .value {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 2.25rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+}
+.stat .sub {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  margin-top: 0.25rem;
+}
+
+/* ═════ Category Breakdown ═════ */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+.cat-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cat-card h4 .total {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1.4rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+.cat-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+.cat-stats span { color: var(--ink-soft); }
+.cat-stats .c { color: var(--success); font-weight: 600; }
+.cat-stats .d { color: var(--danger); font-weight: 600; }
+.cat-stats .p { color: var(--pending); font-weight: 600; }
+.progress-bar {
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+.progress-bar .seg { height: 100%; }
+.progress-bar .c { background: var(--success); }
+.progress-bar .d { background: var(--danger); }
+.progress-bar .p { background: var(--pending); }
+
+/* ═════ Table ═════ */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+th {
+  text-align: right;
+  padding: 0.9rem 1rem;
+  background: #f5f0e6;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #faf7f2; }
+
+.status-pill {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.status-confirmed { background: #e8f2eb; color: var(--success); }
+.status-declined { background: #f5e4e4; color: var(--danger); }
+.status-pending { background: #faefd8; color: var(--pending); }
+
+.row-actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
+
+/* ═════ Filters ═════ */
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.filters input, .filters select {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+.filters .search { flex: 1; min-width: 200px; }
+
+/* ═════ Question Cards ═════ */
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border-right: 3px solid var(--pending);
+}
+.question-card.answered { border-right-color: var(--success); opacity: 0.7; }
+.question-card .q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+}
+.question-card .q-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+.question-card .q-time {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.question-card .q-text {
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+.question-card .q-actions { display: flex; gap: 0.5rem; }
+
+/* ═════ Toast ═════ */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 100;
+  font-size: 0.9rem;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--danger); }
+.toast.success { background: var(--success); }
+
+/* ═════ Empty State ═════ */
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-faint);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.5; }
+
+/* ═════ Modal ═════ */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(44, 36, 25, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h3 {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+/* ═════ Responsive ═════ */
+@media (max-width: 768px) {
+  main { padding: 1rem; }
+  header.topbar { padding: 1rem; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .stat .value { font-size: 1.75rem; }
+  .tab { padding: 0.7rem 1rem; font-size: 0.85rem; }
+}
+
+.muted { color: var(--ink-faint); font-size: 0.85rem; }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+  padding: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ═════ Login Screen ═════ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="decor">✦ ◈ ✦</div>
+    <h1 class="serif">ניהול חתונה</h1>
+    <p class="subtitle">מתן & פריאל · 28.6.2026</p>
+    <form id="loginForm">
+      <label for="pwd">סיסמת גישה</label>
+      <input type="password" id="pwd" autofocus required>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem; justify-content:center;">כניסה ←</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═════ App ═════ -->
+<div id="app" class="app">
+
+  <header class="topbar">
+    <div>
+      <h1 class="serif">מתן & פריאל</h1>
+      <div class="subtitle">Admin Dashboard · 28.06.2026</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary btn-icon" onclick="refreshAll()">🔄 רענן</button>
+      <button class="btn btn-danger btn-icon" onclick="logout()">יציאה</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="overview">סקירה</button>
+      <button class="tab" data-tab="guests">אורחים</button>
+      <button class="tab" data-tab="questions">שאלות <span id="questionsBadge" class="badge" style="display:none">0</span></button>
+      <button class="tab" data-tab="import">ייבוא / ייצוא</button>
+    </div>
+
+    <!-- ═════ Overview Tab ═════ -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="stats-grid" id="statsGrid">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="card">
+        <h2 class="serif">פילוח לפי קטגוריה</h2>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
+    </div>
+
+    <!-- ═════ Guests Tab ═════ -->
+    <div id="tab-guests" class="tab-content">
+      <div class="card">
+        <h2 class="serif">הוספת אורח</h2>
+        <form id="addGuestForm">
+          <div class="form-row">
+            <div>
+              <label for="g-name">שם מלא *</label>
+              <input type="text" id="g-name" required>
+            </div>
+            <div>
+              <label for="g-phone">טלפון</label>
+              <input type="tel" id="g-phone" placeholder="05X-XXXXXXX">
+            </div>
+            <div>
+              <label for="g-category">קטגוריה *</label>
+              <select id="g-category" required>
+                <option value="">-- בחר --</option>
+                <option>חברים שלי</option>
+                <option>חברים שלה</option>
+                <option>משפחה שלי</option>
+                <option>משפחה שלה</option>
+                <option>חברי הורי החתן</option>
+                <option>חברי הורי הכלה</option>
+                <option>צבא</option>
+                <option>עבודה</option>
+                <option>ילדים קטנים</option>
+              </select>
+            </div>
+            <div>
+              <label for="g-count">כמות</label>
+              <input type="number" id="g-count" min="1" value="1">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">+ הוסף אורח</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <h2 class="serif" style="margin:0;">רשימת אורחים</h2>
+          <span class="muted" id="guestCount">0 אורחים</span>
+        </div>
+
+        <div class="filters">
+          <input type="text" id="f-search" class="search" placeholder="חיפוש לפי שם או טלפון...">
+          <select id="f-category">
+            <option value="">כל הקטגוריות</option>
+            <option>חברים שלי</option>
+            <option>חברים שלה</option>
+            <option>משפחה שלי</option>
+            <option>משפחה שלה</option>
+            <option>חברי הורי החתן</option>
+            <option>חברי הורי הכלה</option>
+            <option>צבא</option>
+            <option>עבודה</option>
+            <option>ילדים קטנים</option>
+          </select>
+          <select id="f-status">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">לא ענה</option>
+            <option value="confirmed">מאשר</option>
+            <option value="declined">לא מגיע</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>שם</th>
+                <th>טלפון</th>
+                <th>קטגוריה</th>
+                <th>סטטוס</th>
+                <th>כמות</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="guestsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═════ Questions Tab ═════ -->
+    <div id="tab-questions" class="tab-content">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 class="serif" style="margin:0;">שאלות מאורחים</h2>
+          <select id="f-qstatus" style="max-width:200px;">
+            <option value="pending">פתוחות</option>
+            <option value="answered">נענו</option>
+            <option value="">הכל</option>
+          </select>
+        </div>
+        <div id="questionsList"></div>
+      </div>
+    </div>
+
+    <!-- ═════ Import/Export Tab ═════ -->
+    <div id="tab-import" class="tab-content">
+      <div class="card">
+        <h2 class="serif">ייבוא מ-CSV</h2>
+        <p class="muted" style="margin-bottom:1rem;">
+          העלה קובץ CSV בפורמט: <code>full_name,phone,category,guests_count</code><br>
+          לדוגמה: <code>יוסי כהן,0501234567,חברים שלי,2</code>
+        </p>
+        <input type="file" id="csvFile" accept=".csv">
+        <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="importCSV()">📥 ייבא</button>
+        <div id="importResult" style="margin-top:1rem;"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="serif">ייצוא נתונים</h2>
+        <p class="muted" style="margin-bottom:1rem;">הורד את רשימת האורחים והסטטוסים - לקייטרינג, אולם או לגיבוי.</p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="exportCSV('all')">📄 כל האורחים</button>
+          <button class="btn btn-secondary" onclick="exportCSV('confirmed')">✓ רק מאושרים</button>
+          <button class="btn btn-secondary" onclick="exportCSV('questions')">❓ שאלות</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="serif">תבנית להורדה</h2>
+        <p class="muted" style="margin-bottom:1rem;">הורד תבנית ריקה למילוי ב-Excel/Google Sheets ואז ייבא אותה.</p>
+        <button class="btn btn-secondary" onclick="downloadTemplate()">⬇ הורד תבנית</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═════ Link Modal ═════ -->
+<div class="modal-backdrop" id="linkModal">
+  <div class="modal">
+    <h3 class="serif">קישור אישי לאורח</h3>
+    <p class="muted" id="linkGuestName" style="margin-bottom:1rem;"></p>
+    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+      <input type="text" id="linkUrl" readonly>
+      <button class="btn btn-primary" onclick="copyLink()">העתק</button>
+    </div>
+    <h3 class="serif" style="font-size:1rem; margin-top:1.5rem;">הודעה מוכנה לווטסאפ</h3>
+    <textarea id="linkMessage" rows="5" style="margin-top:0.5rem; resize:vertical;"></textarea>
+    <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeLinkModal()">סגור</button>
+      <button class="btn btn-primary" onclick="openWhatsApp()">פתח בוואטסאפ ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════ Toast ═════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Supabase client
+// ═══════════════════════════════════════════════════════════════════
+const supa = window.supabase.createClient(WEDDING_CONFIG.SUPABASE_URL, WEDDING_CONFIG.SUPABASE_ANON_KEY);
+
+let allGuests = [];
+let allQuestions = [];
+let currentGuestForLink = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// Auth (simple client-side password - good enough for our case)
+// ═══════════════════════════════════════════════════════════════════
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const pwd = document.getElementById('pwd').value;
+  if (pwd === WEDDING_CONFIG.ADMIN_PASSWORD) {
+    sessionStorage.setItem('mp_auth', '1');
+    showApp();
+  } else {
+    toast('סיסמה שגויה', 'error');
+    document.getElementById('pwd').value = '';
+  }
+});
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  refreshAll();
+}
+
+function logout() {
+  sessionStorage.removeItem('mp_auth');
+  location.reload();
+}
+
+if (sessionStorage.getItem('mp_auth') === '1') showApp();
+
+// ═══════════════════════════════════════════════════════════════════
+// Tabs
+// ═══════════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Data loading
+// ═══════════════════════════════════════════════════════════════════
+async function refreshAll() {
+  await Promise.all([loadGuests(), loadQuestions()]);
+  renderOverview();
+  renderGuests();
+  renderQuestions();
+}
+
+async function loadGuests() {
+  const { data, error } = await supa.from('guests').select('*').order('created_at', { ascending: false });
+  if (error) { toast('שגיאה בטעינת אורחים: ' + error.message, 'error'); return; }
+  allGuests = data || [];
+}
+
+async function loadQuestions() {
+  const { data, error } = await supa.from('questions').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  allQuestions = data || [];
+  const pending = allQuestions.filter(q => q.status === 'pending').length;
+  const badge = document.getElementById('questionsBadge');
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-block'; }
+  else badge.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Overview
+// ═══════════════════════════════════════════════════════════════════
+function renderOverview() {
+  const total = allGuests.reduce((s, g) => s + (g.guests_count || 1), 0);
+  const confirmed = allGuests.filter(g => g.rsvp_status === 'confirmed').reduce((s, g) => s + (g.guests_count || 1), 0);
+  const declined = allGuests.filter(g => g.rsvp_status === 'declined').length;
+  const pending = allGuests.filter(g => g.rsvp_status === 'pending').length;
+  const responded = allGuests.length - pending;
+  const responseRate = allGuests.length ? Math.round(responded / allGuests.length * 100) : 0;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat">
+      <div class="label">סה״כ מוזמנים</div>
+      <div class="value">${total}</div>
+      <div class="sub">${allGuests.length} הזמנות נשלחו</div>
+    </div>
+    <div class="stat confirmed">
+      <div class="label">מאושרים</div>
+      <div class="value">${confirmed}</div>
+      <div class="sub">נפשות מאשרות הגעה</div>
+    </div>
+    <div class="stat declined">
+      <div class="label">לא מגיעים</div>
+      <div class="value">${declined}</div>
+      <div class="sub">אישרו שלא יוכלו</div>
+    </div>
+    <div class="stat pending">
+      <div class="label">טרם ענו</div>
+      <div class="value">${pending}</div>
+      <div class="sub">${responseRate}% שיעור תגובה</div>
+    </div>
+  `;
+
+  // Categories
+  const cats = {};
+  allGuests.forEach(g => {
+    if (!cats[g.category]) cats[g.category] = { total: 0, c: 0, d: 0, p: 0, count: 0 };
+    cats[g.category].total += 1;
+    cats[g.category].count += (g.guests_count || 1);
+    if (g.rsvp_status === 'confirmed') cats[g.category].c++;
+    else if (g.rsvp_status === 'declined') cats[g.category].d++;
+    else cats[g.category].p++;
+  });
+
+  const catGrid = document.getElementById('categoryGrid');
+  if (Object.keys(cats).length === 0) {
+    catGrid.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>עדיין לא נוספו אורחים</div>';
+    return;
+  }
+  catGrid.innerHTML = Object.entries(cats).map(([name, s]) => {
+    const cP = s.total ? s.c / s.total * 100 : 0;
+    const dP = s.total ? s.d / s.total * 100 : 0;
+    const pP = s.total ? s.p / s.total * 100 : 0;
+    return `
+      <div class="cat-card">
+        <h4>${escapeHtml(name)} <span class="total">${s.count}</span></h4>
+        <div class="cat-stats">
+          <span>✓ <span class="c">${s.c}</span></span>
+          <span>✗ <span class="d">${s.d}</span></span>
+          <span>⏱ <span class="p">${s.p}</span></span>
+        </div>
+        <div class="progress-bar">
+          <div class="seg c" style="width:${cP}%"></div>
+          <div class="seg d" style="width:${dP}%"></div>
+          <div class="seg p" style="width:${pP}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Guests table
+// ═══════════════════════════════════════════════════════════════════
+function renderGuests() {
+  const search = document.getElementById('f-search').value.toLowerCase();
+  const catF = document.getElementById('f-category').value;
+  const statF = document.getElementById('f-status').value;
+
+  let filtered = allGuests.filter(g => {
+    if (catF && g.category !== catF) return false;
+    if (statF && g.rsvp_status !== statF) return false;
+    if (search && !g.full_name.toLowerCase().includes(search) && !(g.phone || '').includes(search)) return false;
+    return true;
+  });
+
+  document.getElementById('guestCount').textContent = `${filtered.length} אורחים`;
+
+  const tbody = document.getElementById('guestsTable');
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;" class="muted">אין תוצאות</td></tr>`;
+    return;
+  }
+
+  const statusLabels = { confirmed: 'מאשר', declined: 'לא מגיע', pending: 'לא ענה' };
+  tbody.innerHTML = filtered.map(g => `
+    <tr>
+      <td><strong>${escapeHtml(g.full_name)}</strong></td>
+      <td>${escapeHtml(g.phone || '–')}</td>
+      <td>${escapeHtml(g.category)}</td>
+      <td><span class="status-pill status-${g.rsvp_status}">${statusLabels[g.rsvp_status]}</span></td>
+      <td>${g.guests_count || 1}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-secondary btn-icon" onclick="showLink('${g.id}')">🔗 קישור</button>
+          <button class="btn btn-secondary btn-icon" onclick="editGuest('${g.id}')">✎</button>
+          <button class="btn btn-danger btn-icon" onclick="deleteGuest('${g.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+['f-search', 'f-category', 'f-status'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderGuests)
+);
+
+// ═══════════════════════════════════════════════════════════════════
+// Add / edit / delete guest
+// ═══════════════════════════════════════════════════════════════════
+document.getElementById('addGuestForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    full_name: document.getElementById('g-name').value.trim(),
+    phone: document.getElementById('g-phone').value.trim() || null,
+    category: document.getElementById('g-category').value,
+    guests_count: parseInt(document.getElementById('g-count').value) || 1
+  };
+  const { error } = await supa.from('guests').insert(payload);
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  toast('אורח נוסף בהצלחה', 'success');
+  e.target.reset();
+  document.getElementById('g-count').value = 1;
+  refreshAll();
+});
+
+async function deleteGuest(id) {
+  const g = allGuests.find(x => x.id === id);
+  if (!confirm(`למחוק את ${g.full_name}?`)) return;
+  const { error } = await supa.from('guests').delete().eq('id', id);
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  toast('נמחק', 'success');
+  refreshAll();
+}
+
+async function editGuest(id) {
+  const g = allGuests.find(x => x.id === id);
+  const newStatus = prompt(
+    `ערוך סטטוס עבור ${g.full_name}\npending / confirmed / declined`,
+    g.rsvp_status
+  );
+  if (!newStatus || !['pending','confirmed','declined'].includes(newStatus)) return;
+  const payload = { rsvp_status: newStatus };
+  if (newStatus !== 'pending') payload.responded_at = new Date().toISOString();
+  const { error } = await supa.from('guests').update(payload).eq('id', id);
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  toast('עודכן', 'success');
+  refreshAll();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Link modal
+// ═══════════════════════════════════════════════════════════════════
+function showLink(id) {
+  const g = allGuests.find(x => x.id === id);
+  currentGuestForLink = g;
+  const url = `${WEDDING_CONFIG.SITE_URL}?t=${g.token}`;
+  document.getElementById('linkGuestName').textContent = `${g.full_name} · ${g.category}`;
+  document.getElementById('linkUrl').value = url;
+  document.getElementById('linkMessage').value =
+    `היי ${g.full_name.split(' ')[0]} 💍\n\n` +
+    `אנחנו - מתן ופריאל - מתחתנים ב-28.6.2026 ושמחים להזמין אותך!\n\n` +
+    `קישור לאישור הגעה:\n${url}\n\n` +
+    `נשמח לראות אותך איתנו ✨`;
+  document.getElementById('linkModal').classList.add('show');
+}
+
+function closeLinkModal() {
+  document.getElementById('linkModal').classList.remove('show');
+}
+
+function copyLink() {
+  const input = document.getElementById('linkUrl');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  toast('קישור הועתק', 'success');
+}
+
+function openWhatsApp() {
+  if (!currentGuestForLink) return;
+  const msg = document.getElementById('linkMessage').value;
+  const phone = (currentGuestForLink.phone || '').replace(/\D/g, '');
+  if (!phone) { toast('אין טלפון - העתק את ההודעה ידנית', 'error'); return; }
+  const intlPhone = phone.startsWith('0') ? '972' + phone.slice(1) : phone;
+  window.open(`https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Questions
+// ═══════════════════════════════════════════════════════════════════
+document.getElementById('f-qstatus').addEventListener('change', renderQuestions);
+
+function renderQuestions() {
+  const filter = document.getElementById('f-qstatus').value;
+  let list = allQuestions;
+  if (filter) list = list.filter(q => q.status === filter);
+
+  const container = document.getElementById('questionsList');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">💬</div>אין שאלות</div>';
+    return;
+  }
+  container.innerHTML = list.map(q => `
+    <div class="question-card ${q.status}">
+      <div class="q-header">
+        <div>
+          <div class="q-name">${escapeHtml(q.guest_name)}</div>
+          <div class="q-time">${new Date(q.created_at).toLocaleString('he-IL')}</div>
+        </div>
+        <span class="status-pill status-${q.status === 'answered' ? 'confirmed' : 'pending'}">
+          ${q.status === 'answered' ? 'נענתה' : 'פתוחה'}
+        </span>
+      </div>
+      <div class="q-text">${escapeHtml(q.question_text)}</div>
+      ${q.answer_text ? `<div class="q-text muted"><strong>תשובה:</strong> ${escapeHtml(q.answer_text)}</div>` : ''}
+      <div class="q-actions">
+        ${q.status === 'pending' ? `<button class="btn btn-primary btn-icon" onclick="answerQuestion('${q.id}')">✓ סמן כנענתה</button>` : ''}
+        <button class="btn btn-danger btn-icon" onclick="deleteQuestion('${q.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function answerQuestion(id) {
+  const answer = prompt('תשובה (אופציונלי, לתיעוד בלבד):');
+  const { error } = await supa.from('questions').update({
+    status: 'answered',
+    answer_text: answer || null
+  }).eq('id', id);
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  toast('סומן כנענתה', 'success');
+  loadQuestions().then(renderQuestions);
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('למחוק?')) return;
+  const { error } = await supa.from('questions').delete().eq('id', id);
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  loadQuestions().then(renderQuestions);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CSV import/export
+// ═══════════════════════════════════════════════════════════════════
+async function importCSV() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) { toast('בחר קובץ', 'error'); return; }
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const header = lines.shift();
+  const rows = lines.map(line => {
+    const cells = parseCSVLine(line);
+    return {
+      full_name: (cells[0] || '').trim(),
+      phone: (cells[1] || '').trim() || null,
+      category: (cells[2] || '').trim(),
+      guests_count: parseInt(cells[3]) || 1
+    };
+  }).filter(r => r.full_name && r.category);
+
+  if (rows.length === 0) {
+    document.getElementById('importResult').innerHTML = '<span style="color:var(--danger)">לא נמצאו שורות תקינות</span>';
+    return;
+  }
+
+  const { error } = await supa.from('guests').insert(rows);
+  const resEl = document.getElementById('importResult');
+  if (error) {
+    resEl.innerHTML = `<span style="color:var(--danger)">שגיאה: ${error.message}</span>`;
+  } else {
+    resEl.innerHTML = `<span style="color:var(--success)">✓ יובאו ${rows.length} אורחים בהצלחה</span>`;
+    toast(`יובאו ${rows.length} אורחים`, 'success');
+    refreshAll();
+  }
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"' && line[i-1] !== '\\') { inQuotes = !inQuotes; continue; }
+    if (ch === ',' && !inQuotes) { cells.push(current); current = ''; continue; }
+    current += ch;
+  }
+  cells.push(current);
+  return cells;
+}
+
+function exportCSV(type) {
+  let rows, header, filename;
+  if (type === 'questions') {
+    header = ['שם', 'שאלה', 'סטטוס', 'תשובה', 'תאריך'];
+    rows = allQuestions.map(q => [
+      q.guest_name, q.question_text, q.status, q.answer_text || '',
+      new Date(q.created_at).toLocaleString('he-IL')
+    ]);
+    filename = 'wedding-questions.csv';
+  } else {
+    const statusLabels = { confirmed: 'מאשר', declined: 'לא מגיע', pending: 'לא ענה' };
+    let data = allGuests;
+    if (type === 'confirmed') data = data.filter(g => g.rsvp_status === 'confirmed');
+    header = ['שם', 'טלפון', 'קטגוריה', 'סטטוס', 'כמות', 'הערות'];
+    rows = data.map(g => [
+      g.full_name, g.phone || '', g.category,
+      statusLabels[g.rsvp_status], g.guests_count || 1, g.notes || ''
+    ]);
+    filename = type === 'confirmed' ? 'wedding-confirmed.csv' : 'wedding-all.csv';
+  }
+  const csv = '\uFEFF' + [header, ...rows].map(r =>
+    r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  downloadFile(csv, filename);
+  toast('הקובץ הורד', 'success');
+}
+
+function downloadTemplate() {
+  const template =
+    '\uFEFF' +
+    'full_name,phone,category,guests_count\n' +
+    'יוסי כהן,0501234567,חברים שלי,2\n' +
+    'שרה לוי,0509876543,משפחה שלה,1\n';
+  downloadFile(template, 'wedding-template.csv');
+}
+
+function downloadFile(content, filename) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Utils
+// ═══════════════════════════════════════════════════════════════════
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
