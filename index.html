@@ -585,14 +585,14 @@ async function init() {
     }
 
     try {
-        const { data, error } = await sb.from('guests').select('*').eq('token', token).single();
+        const { data, error } = await sb.from('guests').select('*').eq('id', token).single();
         if (error || !data) throw error;
         currentGuest = data;
         document.getElementById('loading-overlay').classList.add('hidden');
         document.getElementById('rsvp-content').classList.remove('hidden');
         updateGreeting();
-        if (data.status && data.status !== 'pending') {
-            selectAttend(data.status === 'coming');
+        if (data.rsvp_status && data.rsvp_status !== 'pending') {
+            selectAttend(data.rsvp_status === 'coming');
         }
         if (data.guests_count) selectCount(Math.min(data.guests_count, 5));
     } catch (err) {
@@ -627,7 +627,7 @@ async function submitRsvp() {
 
     try {
         if (currentGuest) {
-            const { error } = await sb.from('guests').update({ status, guests_count }).eq('id', currentGuest.id);
+            const { error } = await sb.from('guests').update({ rsvp_status: status, guests_count: guests_count }).eq('id', currentGuest.id);
             if (error) throw error;
         } else {
             const name = document.getElementById('manual-name').value.trim();
@@ -636,7 +636,7 @@ async function submitRsvp() {
                 alert(currentLang === 'he' ? 'אנא מלאו שם וטלפון' : 'Please fill name and phone');
                 return;
             }
-            const { error } = await sb.from('guests').insert([{ full_name: name, 'טלפון': phone, status, guests_count }]);
+            const { error } = await sb.from('guests').insert([{ full_name: name, 'טלפון': phone, rsvp_status: status, guests_count: guests_count }]);
             if (error) throw error;
         }
         document.getElementById('rsvp-form').classList.add('hidden');
