@@ -580,7 +580,7 @@ async function submitRsvp() {
             if ('rsvp_status' in currentGuest) updateData.rsvp_status = rsvp_status;
             if ('guests_count' in currentGuest) updateData.guests_count = guests_count;
 
-            console.log('Updating guest id:', guestId);
+            console.log('Updating guest id:', currentGuest.id);
             console.log('Update data:', updateData);
 
             // UPDATE existing guest by id column
