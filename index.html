@@ -3,1370 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חתונת מתן ופריאל | 28.6.2026</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>מזל טוב למתן ופריאל</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
+        :root {
+            --gold: #8B6914;
+            --blue: #7BA7BC;
+            --cream: #F5F0E8;
+            --text: #333;
         }
 
         body {
             font-family: 'Heebo', sans-serif;
-            background-color: #F5F0E8;
-            color: #8B6914;
-            line-height: 1.6;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(ellipse 600px 400px at 85% 15%, rgba(123, 167, 188, 0.1) 0%, transparent 70%),
-                radial-gradient(ellipse 700px 500px at 10% 70%, rgba(122, 140, 94, 0.09) 0%, transparent 70%),
-                radial-gradient(ellipse 500px 600px at 20% 30%, rgba(196, 149, 106, 0.08) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Frank Ruhl Libre', serif;
+            background-color: var(--cream);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .edit-mode-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: #7BA7BC;
-            color: #FFFFFF;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            z-index: 999;
-            transition: all 0.3s;
-            font-family: 'Heebo', sans-serif;
-        }
-
-        .edit-mode-btn:hover {
-            background-color: #6A95A8;
-            box-shadow: 0 4px 12px rgba(123, 167, 188, 0.3);
-        }
-
-        .edit-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .edit-panel.active {
-            display: flex;
-        }
-
-        .edit-panel-content {
-            background-color: #FFFFFF;
-            border-radius: 12px;
-            padding: 30px;
+            background: white;
             max-width: 500px;
             width: 90%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .edit-panel-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #8B6914;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .edit-panel-section {
-            margin-bottom: 20px;
-        }
-
-        .edit-panel-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #8B6914;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .edit-hero-upload {
-            border: 2px dashed #7BA7BC;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-color: #F5F0E8;
-        }
-
-        .edit-hero-upload:hover {
-            background-color: #EFE8D8;
-            border-color: #6A95A8;
-        }
-
-        .edit-scale-slider {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: linear-gradient(to right, #D4B896, #7BA7BC);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .edit-scale-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #8B6914;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .edit-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .edit-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Heebo', sans-serif;
-        }
-
-        .edit-btn-save {
-            background-color: #7BA7BC;
-            color: #FFFFFF;
-        }
-
-        .edit-btn-exit {
-            background-color: transparent;
-            color: #8B6914;
-            border: 2px solid #8B6914;
-        }
-
-        .leaf-decoration {
-            animation: sway 4s ease-in-out infinite alternate;
-        }
-
-        @keyframes sway {
-            from { transform: rotate(-3deg); }
-            to { transform: rotate(3deg); }
-        }
-
-        .leaf-top-left {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
-            opacity: 0.6;
-        }
-
-        .leaf-top-right {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            opacity: 0.6;
-        }
-
-        .leaf-divider {
-            text-align: center;
-            margin: 30px 0;
-            opacity: 0.5;
-            font-size: 24px;
-            letter-spacing: 8px;
-        }
-
-        header {
-            background-color: #F5F0E8;
-            padding: 40px 20px 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .hero-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            margin: 0 auto 30px;
-        }
-
-        @media (min-width: 768px) {
-            .hero-container {
-                width: 400px;
-                height: 400px;
-            }
-        }
-
-        .hero-circle {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), inset 0 2px 8px rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-
-        .hero-circle:hover {
-            transform: scale(1.02);
-        }
-
-        .hero-circle img {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            z-index: 1;
-        }
-
-        .hero-circle-placeholder {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8B6914;
-            font-size: 48px;
-            opacity: 0.3;
-        }
-
-        .hero-wreath {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120%;
-            height: 120%;
-            z-index: 0;
-        }
-
-        .couple-names {
-            font-size: 48px;
-            font-weight: 700;
-            color: #8B6914;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .couple-names span {
-            font-size: 28px;
-            font-weight: 300;
-        }
-
-        .subtitle {
-            color: #8B6914;
-            font-size: 14px;
-            line-height: 1.8;
-            margin-bottom: 20px;
-            opacity: 0.85;
-            position: relative;
-            z-index: 2;
-        }
-
-        .divider {
-            width: 60px;
-            height: 2px;
-            background: linear-gradient(to right, transparent, #8B6914, transparent);
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        main {
-            padding: 40px 20px;
-        }
-
-        .card {
-            background-color: #FFFFFF;
-            border: 2px solid #D4B896;
-            border-radius: 12px;
+            margin: 20px;
             padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .card:nth-child(even) {
-            border-color: #7BA7BC;
-        }
-
-        .card-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #8B6914;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
-            margin-bottom: 15px;
+            border: 1px solid var(--gold);
         }
 
-        .card-divider {
-            width: 40px;
-            height: 2px;
-            background: linear-gradient(to right, transparent, #8B6914, transparent);
+        h1, h2 { font-family: 'Frank Ruhl Libre', serif; color: var(--gold); }
+
+        .couple-img-container {
+            width: 180px;
+            height: 180px;
             margin: 0 auto 20px;
-        }
-
-        .event-detail {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: flex-start;
-        }
-
-        .event-detail-icon {
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-
-        .event-detail-text {
-            flex: 1;
-        }
-
-        .event-detail-title {
-            font-weight: 600;
-            color: #8B6914;
-            margin-bottom: 3px;
-        }
-
-        .event-detail-subtitle {
-            font-size: 12px;
-            color: #8B6914;
-            opacity: 0.7;
-        }
-
-        button, a.btn {
-            display: inline-block;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Heebo', sans-serif;
-            text-decoration: none;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background-color: #8B6914;
-            color: #F5F0E8;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .btn-primary:hover {
-            background-color: #7A5C0F;
-            box-shadow: 0 4px 12px rgba(139, 105, 20, 0.2);
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: #7BA7BC;
-            border: 2px solid #7BA7BC;
-            width: 100%;
-        }
-
-        .countdown-container {
-            background-color: #F5F0E8;
-            border: 2px solid #7BA7BC;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .countdown-title {
-            font-size: 22px;
-            color: #8B6914;
-            margin-bottom: 20px;
-        }
-
-        .countdown-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-
-        .countdown-item {
-            background-color: #FFFFFF;
-            border: 2px solid #7BA7BC;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .countdown-number {
-            font-size: 28px;
-            font-weight: 700;
-            color: #7BA7BC;
-            font-family: 'Frank Ruhl Libre', serif;
-        }
-
-        .countdown-label {
-            font-size: 11px;
-            color: #8B6914;
-            margin-top: 8px;
-            opacity: 0.7;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #8B6914;
-            margin-bottom: 8px;
-        }
-
-        input[type="text"],
-        input[type="tel"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #8B6914;
-            border-radius: 8px;
-            font-family: 'Heebo', sans-serif;
-            font-size: 14px;
-            color: #8B6914;
-            background-color: #FFFFFF;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus,
-        input[type="tel"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #7BA7BC;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .step-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .step-dot {
-            width: 8px;
-            height: 8px;
+            border: 4px solid var(--gold);
             border-radius: 50%;
-            background-color: #D4B896;
-            transition: background-color 0.3s;
-        }
-
-        .step-dot.active {
-            background-color: #8B6914;
-        }
-
-        .attendance-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .attendance-btn {
-            padding: 16px;
-            border: 2px solid #8B6914;
-            background-color: #FFFFFF;
-            color: #8B6914;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .attendance-btn.selected-yes {
-            background-color: #E8F5F8;
-            border-color: #7BA7BC;
-            color: #7BA7BC;
-        }
-
-        .attendance-btn.selected-no {
-            background-color: #FCE4EC;
-            border-color: #E91E63;
-            color: #C2185B;
-        }
-
-        .guest-count-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .guest-count-btn {
-            padding: 12px;
-            border: 2px solid #8B6914;
-            background-color: #FFFFFF;
-            color: #8B6914;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .guest-count-btn.selected {
-            background-color: #7BA7BC;
-            color: #FFFFFF;
-            border-color: #7BA7BC;
-        }
-
-        .thank-you-message {
-            text-align: center;
-            padding: 30px 0;
-        }
-
-        .thank-you-emoji {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
-
-        .thank-you-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #8B6914;
-            margin-bottom: 10px;
-        }
-
-        .thank-you-subtext {
-            font-size: 14px;
-            color: #8B6914;
-            opacity: 0.75;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background-color: #FFFFFF;
-            border: 2px solid #D4B896;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #8B6914;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 28px;
-            color: #8B6914;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .gift-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .gift-tab {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #8B6914;
-            background-color: #FFFFFF;
-            color: #8B6914;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .gift-tab.active {
-            background-color: #8B6914;
-            color: #F5F0E8;
-        }
-
-        .gift-tab-content {
-            display: none;
-            text-align: center;
-        }
-
-        .gift-tab-content.active {
-            display: block;
-        }
-
-        .qr-placeholder {
-            background-color: #F5EDD8;
-            border: 2px dashed #8B6914;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .gift-text {
-            font-size: 14px;
-            color: #8B6914;
-            margin-top: 15px;
-        }
-
-        .faq-section {
-            margin-bottom: 30px;
-        }
-
-        .faq-item {
-            background-color: #FFFFFF;
-            border: 2px solid #D4B896;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            position: relative;
             overflow: hidden;
         }
 
-        .faq-item:nth-child(even) {
-            border-color: #7BA7BC;
-        }
-
-        .faq-question {
-            padding: 16px;
-            background-color: #FFFFFF;
-            border: none;
+        .couple-img-container::after {
+            content: '🌿'; /* עיטור עלי זית סמלי */
+            position: absolute;
+            bottom: -5px;
             width: 100%;
-            text-align: right;
-            font-weight: 600;
-            color: #8B6914;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-
-        .faq-question:hover {
-            background-color: #F5F0E8;
-        }
-
-        .faq-chevron {
-            display: inline-block;
-            transition: transform 0.3s;
-        }
-
-        .faq-chevron.open {
-            transform: rotate(180deg);
-        }
-
-        .faq-answer {
-            display: none;
-            padding: 16px;
-            border-top: 2px solid #D4B896;
-            color: #8B6914;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .faq-answer.show {
-            display: block;
-        }
-
-        footer {
+            font-size: 24px;
             text-align: center;
-            padding: 40px 20px;
-            border-top: 2px solid #D4B896;
-            margin-top: 40px;
         }
 
-        .footer-text {
-            font-size: 13px;
-            color: #8B6914;
-            opacity: 0.8;
+        .couple-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .form-group { margin-bottom: 20px; text-align: right; }
+        
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--gold); }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Heebo';
         }
 
-        .hidden {
-            display: none !important;
+        .btn {
+            background: var(--gold);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 10px;
         }
 
-        @media (max-width: 480px) {
-            .couple-names { font-size: 36px; }
-            .card { padding: 20px; }
-            .countdown-grid { grid-template-columns: repeat(2, 1fr); }
-            .guest-count-buttons { grid-template-columns: repeat(2, 1fr); }
+        .btn:hover { background: #6b510f; }
+
+        .btn-secondary { background: var(--blue); }
+
+        .payments {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
+
+        .pay-link { text-decoration: none; font-size: 14px; color: var(--blue); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <button class="edit-mode-btn" onclick="openEditMode()">✏️ עריכה</button>
+<div class="container" id="app">
+    <div class="couple-img-container">
+        <img src="couple.jpg" alt="מתן ופריאל" class="couple-img">
+    </div>
+    
+    <h1>מתן & פריאל</h1>
+    <p>28.06.2026 | ירושלים</p>
 
-    <div id="editPanel" class="edit-panel">
-        <div class="edit-panel-content">
-            <div class="edit-panel-title">עריכת תמונה</div>
-            <div class="edit-panel-section">
-                <label class="edit-panel-label">העלו תמונה</label>
-                <div class="edit-hero-upload" id="editHeroUpload"
-                     ondrop="handleEditDrop(event)"
-                     ondragover="handleEditDragOver(event)"
-                     ondragleave="handleEditDragLeave(event)"
-                     onclick="document.getElementById('editHeroInput').click()">
-                    <div style="font-size: 32px; margin-bottom: 10px;">📷</div>
-                    <div>גררו תמונה או לחצו להעלאה</div>
-                </div>
-                <input type="file" id="editHeroInput" accept="image/*" style="display: none;" onchange="handleEditImageSelect(event)">
-            </div>
-            <div class="edit-panel-section">
-                <label class="edit-panel-label">גודל התמונה</label>
-                <input type="range" id="editScaleSlider" class="edit-scale-slider" min="50" max="150" value="100" oninput="updateEditScale()">
-            </div>
-            <div class="edit-buttons">
-                <button class="edit-btn edit-btn-save" onclick="saveEditMode()">שמור 💾</button>
-                <button class="edit-btn edit-btn-exit" onclick="closeEditMode()">יציאה מעריכה</button>
-            </div>
+    <div id="loading">טוען פרטים...</div>
+
+    <div id="rsvp-form" style="display: none;">
+        <h2 id="guest-name">שלום</h2>
+        <div class="form-group">
+            <label>האם תגיעו?</label>
+            <select id="attendance">
+                <option value="coming">מגיע/ה בשמחה</option>
+                <option value="not_coming">לא אוכל להגיע</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>כמות אורחים (כולל אותך):</label>
+            <input type="number" id="guest-count" min="1" max="10" value="1">
+        </div>
+        <button class="btn" onclick="submitRsvp()">אישור הגעה</button>
+
+        <hr style="margin: 30px 0; border: 0.5px solid var(--cream);">
+
+        <div class="form-group">
+            <label>יש לכם שאלה?</label>
+            <textarea id="question-text" rows="3" placeholder="כתבו לנו כאן..."></textarea>
+            <button class="btn btn-secondary" onclick="sendQuestion()">שלח שאלה</button>
+        </div>
+
+        <div class="payments">
+            <a href="https://bit.ly/your-bit" class="pay-link">מתנה ב-Bit ➔</a>
+            <a href="https://payboxapp.page.link/your-link" class="pay-link">מתנה ב-Paybox ➔</a>
         </div>
     </div>
+</div>
 
-    <header>
-        <svg class="leaf-decoration leaf-top-left" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 10 Q70 30 60 50 Q70 70 50 90 Q30 70 40 50 Q30 30 50 10" fill="#7A8C5E" opacity="0.7"/>
-            <path d="M50 20 Q65 35 58 50 Q65 65 50 80 Q35 65 42 50 Q35 35 50 20" fill="#5C7A4E"/>
-        </svg>
-        <svg class="leaf-decoration leaf-top-right" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 10 Q70 30 60 50 Q70 70 50 90 Q30 70 40 50 Q30 30 50 10" fill="#7A8C5E" opacity="0.7"/>
-            <path d="M50 20 Q65 35 58 50 Q65 65 50 80 Q35 65 42 50 Q35 35 50 20" fill="#5C7A4E"/>
-        </svg>
+<script>
+    const SB_URL = "https://zuohyggfphbgntlqyofa.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1b2h5Z2dmcGhiZ250bHF5b2ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTA0MzQsImV4cCI6MjA5MjI4NjQzNH0.eveHZ8qFzR34Wr1m2OGkIKtpEG6PXfffVTXDsercnHs";
+    const supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        <div class="container">
-            <div class="hero-container" onclick="openEditMode()">
-                <svg class="hero-wreath" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <g opacity="0.6">
-                        <ellipse cx="50" cy="50" rx="48" ry="48" fill="none" stroke="#7A8C5E" stroke-width="1"/>
-                        <path d="M30 20 Q35 15 40 18 Q38 25 30 30" fill="#7A8C5E" opacity="0.5"/>
-                        <path d="M70 20 Q75 15 80 18 Q78 25 70 30" fill="#7A8C5E" opacity="0.5"/>
-                        <path d="M20 50 Q15 45 15 55 Q20 58 25 55" fill="#7A8C5E" opacity="0.5"/>
-                        <path d="M85 50 Q90 45 90 55 Q85 58 80 55" fill="#7A8C5E" opacity="0.5"/>
-                        <path d="M30 80 Q35 85 40 82 Q38 75 30 70" fill="#7A8C5E" opacity="0.5"/>
-                        <path d="M70 80 Q75 85 80 82 Q78 75 70 70" fill="#7A8C5E" opacity="0.5"/>
-                    </g>
-                </svg>
-                <div class="hero-circle">
-                    <img id="heroImage" src="" alt="תמונת החתונה" style="display: none;">
-                    <div class="hero-circle-placeholder" id="heroPlaceholder">📷</div>
-                </div>
-            </div>
+    let guestToken = new URLSearchParams(window.location.search).get('t');
 
-            <div class="couple-names">מתן <span>&amp;</span> פריאל</div>
-            <div class="subtitle">אנחנו שמחים להזמין אתכם לחגוג<br>את החתונה שלנו</div>
-            <div class="divider"></div>
-        </div>
-    </header>
-
-    <main class="container">
-
-        <div class="card">
-            <div class="card-title">פרטי האירוע</div>
-            <div class="card-divider"></div>
-            <div class="event-detail">
-                <div class="event-detail-icon">📅</div>
-                <div class="event-detail-text">
-                    <div class="event-detail-title">יום ראשון, י״ג תמוז תשפ״ו</div>
-                    <div class="event-detail-subtitle">28.6.2026</div>
-                </div>
-            </div>
-            <div class="event-detail">
-                <div class="event-detail-icon">🥂</div>
-                <div class="event-detail-text">
-                    <div class="event-detail-title">קבלת פנים</div>
-                    <div class="event-detail-subtitle">18:00</div>
-                </div>
-            </div>
-            <div class="event-detail">
-                <div class="event-detail-icon">💍</div>
-                <div class="event-detail-text">
-                    <div class="event-detail-title">חופה וקידושין</div>
-                    <div class="event-detail-subtitle">19:00 (לפני שקיעה)</div>
-                </div>
-            </div>
-            <div class="event-detail">
-                <div class="event-detail-icon">📍</div>
-                <div class="event-detail-text">
-                    <div class="event-detail-title">אולם ארבע עונות</div>
-                    <div class="event-detail-subtitle">קיבוץ ברור חיל</div>
-                </div>
-            </div>
-            <a href="https://waze.com/ul?q=אולם+ארבע+עונות+קיבוץ+ברור+חיל" target="_blank" class="btn btn-primary">
-                נווט ב-Waze 📍
-            </a>
-        </div>
-
-        <div class="leaf-divider">🌿 🍃 🌿</div>
-
-        <div class="countdown-container">
-            <div class="countdown-title">⏳ עוד כמה זמן?</div>
-            <div class="countdown-grid">
-                <div class="countdown-item">
-                    <div class="countdown-number" id="days">0</div>
-                    <div class="countdown-label">ימים</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="countdown-number" id="hours">0</div>
-                    <div class="countdown-label">שעות</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="countdown-number" id="minutes">0</div>
-                    <div class="countdown-label">דקות</div>
-                </div>
-                <div class="countdown-item">
-                    <div class="countdown-number" id="seconds">0</div>
-                    <div class="countdown-label">שניות</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="leaf-divider">🌿 🍃 🌿</div>
-
-        <div class="card">
-            <div class="card-title">אישור הגעה</div>
-            <div class="card-divider"></div>
-
-            <div id="rsvpForm">
-                <div class="step-indicators">
-                    <div class="step-dot active" id="step1Dot"></div>
-                    <div class="step-dot" id="step2Dot"></div>
-                    <div class="step-dot" id="step3Dot"></div>
-                </div>
-
-                <div id="step1" class="form-step">
-                    <div class="form-group">
-                        <label class="form-label">שם מלא *</label>
-                        <input type="text" id="guestName" placeholder="הכניסו שם מלא" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">מספר טלפון *</label>
-                        <input type="tel" id="guestPhone" placeholder="05X-XXXXXXX" required dir="ltr">
-                    </div>
-                    <button class="btn btn-primary" onclick="nextStep()">המשך ←</button>
-                </div>
-
-                <div id="step2" class="form-step hidden">
-                    <div style="text-align: center; font-weight: 600; color: #8B6914; margin-bottom: 20px;">
-                        האם אתם מגיעים?
-                    </div>
-                    <div class="attendance-buttons">
-                        <button class="attendance-btn" onclick="selectAttendance(true)">🎉 כן, אנחנו מגיעים!</button>
-                        <button class="attendance-btn" onclick="selectAttendance(false)">😢 לא נוכל להגיע</button>
-                    </div>
-                    <div id="guestCountSection" class="hidden" style="margin-top: 20px;">
-                        <label class="form-label">כמה אורחים?</label>
-                        <div class="guest-count-buttons">
-                            <button class="guest-count-btn" onclick="selectGuestCount(1)">1</button>
-                            <button class="guest-count-btn" onclick="selectGuestCount(2)">2</button>
-                            <button class="guest-count-btn" onclick="selectGuestCount(3)">3</button>
-                            <button class="guest-count-btn" onclick="selectGuestCount(4)">4</button>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="submitRsvp()">שלח תשובה ✓</button>
-                </div>
-
-                <div id="step3" class="form-step hidden">
-                    <div class="thank-you-message">
-                        <div class="thank-you-emoji">🎊</div>
-                        <div class="thank-you-text">תודה רבה על התשובה!</div>
-                        <div class="thank-you-subtext">נשמח לראות אתכם בחתונה</div>
-                        <button class="btn btn-primary" onclick="resetRsvp()">חזור לעמוד הבית 🏠</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="leaf-divider">🌿 🍃 🌿</div>
-
-        <div class="card">
-            <button class="btn btn-secondary" onclick="openGiftModal()">🎁 רוצים להשאיר מתנה לזוג?</button>
-        </div>
-
-        <div id="giftModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="modal-title">מתנות לזוג 🎁</div>
-                    <button class="close-btn" onclick="closeGiftModal()">✕</button>
-                </div>
-                <div class="gift-tabs">
-                    <button class="gift-tab active" onclick="switchGiftTab('bit', event)">💸 ביט</button>
-                    <button class="gift-tab" onclick="switchGiftTab('paybox', event)">💙 פייבוקס</button>
-                </div>
-                <div id="bitTab" class="gift-tab-content active">
-                    <div class="qr-placeholder" style="background: white; padding: 10px; text-align:center;">
-                        <p style="color:#8B6914; font-size:14px;">סרקו את הקוד לתשלום בביט</p>
-                    </div>
-                    <div class="gift-text">
-                        או העבירו ישירות למספר <strong>0503838631</strong>
-                    </div>
-                </div>
-                <div id="payboxTab" class="gift-tab-content">
-                    <a href="https://links.payboxapp.com/zTYBF8rws2b" target="_blank" class="btn btn-primary">
-                        💙 תשלום בפייבוקס
-                    </a>
-                    <div class="gift-text">
-                        לחצו להצטרפות לקבוצת המתנה — השימוש חינם!
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="leaf-divider">🌿 🍃 🌿</div>
-
-        <div class="faq-section">
-            <div class="card-title">שאלות נפוצות</div>
-            <div class="card-divider"></div>
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(0)">
-                    <span class="faq-chevron">▼</span>
-                    <span>האם האולם נגיש?</span>
-                </button>
-                <div class="faq-answer">כן מאוד! האולם נגיש במלואו לאנשים עם מוגבלויות. ♿</div>
-            </div>
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(1)">
-                    <span class="faq-chevron">▼</span>
-                    <span>יש חניה במקום?</span>
-                </button>
-                <div class="faq-answer">בשפע רב! ישנה חניה גדולה ומוסדרת ממש ליד האולם. 🚗</div>
-            </div>
-            <div class="faq-item">
-                <button class="faq-question" onclick="toggleFaq(2)">
-                    <span class="faq-chevron">▼</span>
-                    <span>קוד לבוש?</span>
-                </button>
-                <div class="faq-answer">לבוש צנוע יהלום את האירוע. 🤍</div>
-            </div>
-        </div>
-
-        <div class="leaf-divider">🌿 🍃 🌿</div>
-
-        <div class="card">
-            <div class="card-title">יש לכם שאלה?</div>
-            <div class="card-divider"></div>
-            <div class="form-group">
-                <label class="form-label">שמכם</label>
-                <input type="text" id="questionName" placeholder="הכניסו שם">
-            </div>
-            <div class="form-group">
-                <label class="form-label">השאלה שלכם</label>
-                <textarea id="questionText" placeholder="כתבו את שאלתכם כאן..."></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="sendQuestion()">שלחו לנו 💬</button>
-        </div>
-
-    </main>
-
-    <footer>
-        <div class="footer-text">מתן &amp; פריאל | י״ג תמוז תשפ״ו | 28.6.2026</div>
-    </footer>
-
-    <script>
-        // ==== SUPABASE CONFIG ====
-        const SUPABASE_URL = 'https://zuohyggfphbgntlqyofa.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1b2h5Z2dmcGhiZ250bHF5b2ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTA0MzQsImV4cCI6MjA5MjI4NjQzNH0.eveHZ8qFzR34Wr1m2OGkIKtpEG6PXfffVTXDsercnHs';
-        let currentGuestToken = null;
-        let currentGuestId = null;
-
-        // ==== Auto-fill name/phone from token in URL ====
-        async function loadGuestFromToken() {
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('t');
-            if (!token) return;
-            currentGuestToken = token;
-            try {
-                const res = await fetch(
-                    `${SUPABASE_URL}/rest/v1/guests?token=eq.${token}&select=id,name,phone`,
-                    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-                );
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    const guest = data[0];
-                    currentGuestId = guest.id;
-                    if (guest.name) document.getElementById('guestName').value = guest.name;
-                    if (guest.phone) document.getElementById('guestPhone').value = guest.phone;
-                }
-            } catch (e) {
-                console.error('Error loading guest:', e);
-            }
+    async function init() {
+        if (!guestToken) {
+            document.getElementById('loading').innerText = "אופס! נראה שהקישור לא תקין.";
+            return;
         }
 
-        // State
-        let currentStep = 1;
-        let selectedAttendance = null;
-        let selectedGuestCount = 2;
-        let editMode = false;
-        let editScale = 100;
+        const { data, error } = await supabase
+            .from('guests')
+            .select('full_name, phone')
+            .eq('token', guestToken)
+            .single();
 
-        // On page load
-        window.addEventListener('load', function() {
-            loadHeroImage();
-            updateCountdown();
-            loadGuestFromToken();
-        });
-
-        // Countdown Timer
-        function updateCountdown() {
-            const target = new Date('2026-06-28T18:00:00+03:00').getTime();
-            const diff = Date.now() - target <= 0 ? target - Date.now() : 0;
-            if (diff <= 0) {
-                ['days','hours','minutes','seconds'].forEach(id => document.getElementById(id).textContent = '0');
-                return;
-            }
-            document.getElementById('days').textContent = String(Math.floor(diff / 86400000)).padStart(2,'0');
-            document.getElementById('hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
-            document.getElementById('minutes').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
-            document.getElementById('seconds').textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+        if (error || !data) {
+            document.getElementById('loading').innerText = "אורח לא נמצא במערכת.";
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('rsvp-form').style.display = 'block';
+            document.getElementById('guest-name').innerText = `שלום, ${data.full_name}`;
         }
-        setInterval(updateCountdown, 1000);
+    }
 
-        // Edit Mode
-        function openEditMode() {
-            const password = prompt('הכניסו סיסמה');
-            if (password === 'Priel23') {
-                editMode = true;
-                document.getElementById('editPanel').classList.add('active');
-                document.getElementById('editScaleSlider').value = editScale;
-            } else if (password !== null) {
-                alert('סיסמה שגויה ❌');
-            }
+    async function submitRsvp() {
+        const status = document.getElementById('attendance').value;
+        const count = document.getElementById('guest-count').value;
+
+        const { error } = await supabase
+            .from('guests')
+            .update({ status: status, guest_count: count })
+            .eq('token', guestToken);
+
+        if (error) alert("שגיאה בעדכון ה-RSVP");
+        else alert("תודה! הפרטים עודכנו בהצלחה.");
+    }
+
+    async function sendQuestion() {
+        const text = document.getElementById('question-text').value;
+        if (!text) return;
+
+        const { error } = await supabase
+            .from('questions')
+            .insert([{ token: guestToken, question: text }]);
+
+        if (error) alert("שגיאה בשליחת השאלה");
+        else {
+            alert("השאלה נשלחה בהצלחה!");
+            document.getElementById('question-text').value = '';
         }
+    }
 
-        function closeEditMode() {
-            editMode = false;
-            document.getElementById('editPanel').classList.remove('active');
-        }
+    init();
+</script>
 
-        function handleEditDragOver(e) {
-            e.preventDefault();
-            document.getElementById('editHeroUpload').classList.add('dragover');
-        }
-
-        function handleEditDragLeave(e) {
-            document.getElementById('editHeroUpload').classList.remove('dragover');
-        }
-
-        function handleEditDrop(e) {
-            e.preventDefault();
-            document.getElementById('editHeroUpload').classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) handleEditImageFile(files[0]);
-        }
-
-        function handleEditImageSelect(e) {
-            const files = e.target.files;
-            if (files.length > 0) handleEditImageFile(files[0]);
-        }
-
-        function handleEditImageFile(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.getElementById('heroImage');
-                img.src = e.target.result;
-                img.style.display = 'block';
-                document.getElementById('heroPlaceholder').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function updateEditScale() {
-            editScale = document.getElementById('editScaleSlider').value;
-            const img = document.getElementById('heroImage');
-            if (img.src) img.style.transform = `scale(${editScale / 100})`;
-        }
-
-        function saveEditMode() {
-            const img = document.getElementById('heroImage');
-            if (img.src && img.src !== window.location.href) {
-                localStorage.setItem('heroImage', img.src);
-                localStorage.setItem('heroScale', editScale);
-                alert('תמונה נשמרה בהצלחה! 💾');
-                closeEditMode();
-            } else {
-                alert('אנא בחרו תמונה');
-            }
-        }
-
-        function loadHeroImage() {
-            const saved = localStorage.getItem('heroImage');
-            if (saved) {
-                const img = document.getElementById('heroImage');
-                img.src = saved;
-                img.style.display = 'block';
-                document.getElementById('heroPlaceholder').style.display = 'none';
-                editScale = localStorage.getItem('heroScale') || 100;
-                img.style.transform = `scale(${editScale / 100})`;
-            }
-        }
-
-        // RSVP Steps
-        function nextStep() {
-            const name = document.getElementById('guestName').value.trim();
-            const phone = document.getElementById('guestPhone').value.trim();
-            if (!name || !phone) {
-                alert('אנא מלאו את כל השדות');
-                return;
-            }
-            currentStep = 2;
-            updateFormSteps();
-        }
-
-        function selectAttendance(attending) {
-            selectedAttendance = attending;
-            const btns = document.querySelectorAll('.attendance-btn');
-            btns[0].classList.remove('selected-yes');
-            btns[1].classList.remove('selected-no');
-            if (attending) {
-                btns[0].classList.add('selected-yes');
-                document.getElementById('guestCountSection').classList.remove('hidden');
-            } else {
-                btns[1].classList.add('selected-no');
-                document.getElementById('guestCountSection').classList.add('hidden');
-            }
-        }
-
-        function selectGuestCount(count) {
-            selectedGuestCount = count;
-            document.querySelectorAll('.guest-count-btn').forEach((btn, i) => {
-                btn.classList.toggle('selected', i + 1 === count);
-            });
-        }
-
-        // ==== RSVP to Supabase ====
-        async function submitRsvp() {
-            if (selectedAttendance === null) {
-                alert('אנא בחרו האם אתם מגיעים');
-                return;
-            }
-
-            const name = document.getElementById('guestName').value.trim();
-            const phone = document.getElementById('guestPhone').value.trim();
-
-            if (!name || !phone) {
-                alert('אנא מלאו שם וטלפון');
-                return;
-            }
-
-            const guests = selectedAttendance ? selectedGuestCount : 0;
-            const status = selectedAttendance ? 'coming' : 'not_coming';
-
-            try {
-                let url, method, body;
-
-                if (currentGuestId) {
-                    // Update existing guest (came via personal link)
-                    url = `${SUPABASE_URL}/rest/v1/guests?id=eq.${currentGuestId}`;
-                    method = 'PATCH';
-                    body = { name, phone, status, guests_count: guests };
-                } else {
-                    // New guest (no personal link)
-                    url = `${SUPABASE_URL}/rest/v1/guests`;
-                    method = 'POST';
-                    body = { name, phone, status, guests_count: guests };
-                }
-
-                const res = await fetch(url, {
-                    method,
-                    headers: {
-                        apikey: SUPABASE_KEY,
-                        Authorization: `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json',
-                        Prefer: 'return=minimal'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (res.ok || res.status === 204) {
-                    currentStep = 3;
-                    updateFormSteps();
-                } else {
-                    const err = await res.text();
-                    console.error('Supabase error:', err);
-                    alert('שגיאה בשמירה, אנא נסו שוב');
-                }
-            } catch (e) {
-                console.error('Network error:', e);
-                alert('שגיאת רשת, אנא נסו שוב');
-            }
-        }
-
-        function resetRsvp() {
-            currentStep = 1;
-            selectedAttendance = null;
-            selectedGuestCount = 2;
-            document.getElementById('guestName').value = '';
-            document.getElementById('guestPhone').value = '';
-            updateFormSteps();
-        }
-
-        function updateFormSteps() {
-            document.getElementById('step1').classList.toggle('hidden', currentStep !== 1);
-            document.getElementById('step2').classList.toggle('hidden', currentStep !== 2);
-            document.getElementById('step3').classList.toggle('hidden', currentStep !== 3);
-            document.getElementById('step1Dot').classList.toggle('active', currentStep >= 1);
-            document.getElementById('step2Dot').classList.toggle('active', currentStep >= 2);
-            document.getElementById('step3Dot').classList.toggle('active', currentStep >= 3);
-        }
-
-        // Gift Modal
-        function openGiftModal() {
-            document.getElementById('giftModal').classList.add('show');
-        }
-
-        function closeGiftModal() {
-            document.getElementById('giftModal').classList.remove('show');
-        }
-
-        function switchGiftTab(tab, event) {
-            document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.gift-tab-content').forEach(c => c.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
-            document.getElementById(tab + 'Tab').classList.add('active');
-        }
-
-        // FAQ
-        function toggleFaq(index) {
-            const items = document.querySelectorAll('.faq-item');
-            const answer = items[index].querySelector('.faq-answer');
-            const chevron = items[index].querySelector('.faq-chevron');
-            answer.classList.toggle('show');
-            chevron.classList.toggle('open');
-        }
-
-        // ==== Send Question to Supabase ====
-        async function sendQuestion() {
-            const name = document.getElementById('questionName').value.trim() || 'אורח';
-            const question = document.getElementById('questionText').value.trim();
-
-            if (!question) {
-                alert('אנא כתבו שאלה');
-                return;
-            }
-
-            try {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/questions`, {
-                    method: 'POST',
-                    headers: {
-                        apikey: SUPABASE_KEY,
-                        Authorization: `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json',
-                        Prefer: 'return=minimal'
-                    },
-                    body: JSON.stringify({ guest_name: name, question_text: question })
-                });
-
-                if (res.ok || res.status === 201 || res.status === 204) {
-                    document.getElementById('questionName').value = '';
-                    document.getElementById('questionText').value = '';
-                    alert('השאלה נשלחה בהצלחה! 💌');
-                } else {
-                    alert('שגיאה בשליחה, אנא נסו שוב');
-                }
-            } catch (e) {
-                console.error('Network error:', e);
-                alert('שגיאת רשת, אנא נסו שוב');
-            }
-        }
-
-        // Close modal on outside click
-        window.onclick = function(event) {
-            const modal = document.getElementById('giftModal');
-            if (event.target === modal) closeGiftModal();
-        }
-    </script>
 </body>
 </html>
