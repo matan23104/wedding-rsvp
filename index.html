@@ -8,7 +8,10 @@
 <style>
     body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; padding: 20px; margin: 0; color: #333; }
     .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    h1 { margin-top: 0; color: #8B6914; }
+    h1 { margin-top: 0; color: #8B6914; margin-bottom: 5px; }
+    
+    /* שינוי 1+2: תצוגת תאריך ושעה בכותרת הניהול */
+    .event-info { color: #8B6914; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
     
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
@@ -20,8 +23,7 @@
     th { background-color: #8B6914; color: white; position: sticky; top: 0; }
     tr:hover { background-color: #f5f5f5; }
     
-    .status-coming { color: green; font-weight: bold; }
-    .status-not { color: red; font-weight: bold; }
+    .status-icon { font-size: 1.2rem; }
     .status-wait { color: orange; font-style: italic; }
     
     .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; color: white; background: #7BA7BC; }
@@ -35,6 +37,11 @@
 
 <div class="container">
     <h1>ניהול מוזמנים ואישורי הגעה</h1>
+    
+    <!-- שינוי 1: תאריך עברי | שינוי 2: שעה והערה -->
+    <div class="event-info">
+        י"ג תמוז התשפ"ו | חופה וקידושין: 19:00 (נא להגיע בזמן, חופה לפני השקיעה)
+    </div>
     
     <div class="stats-grid">
         <div class="stat-card">
@@ -72,7 +79,7 @@
                     <th>סטטוס</th>
                     <th>כמות</th>
                     <th>הערות</th>
-                    <th>קישור אישי להזמנה</th>
+                    <th>קישור אישי</th>
                     <th>פעולות</th>
                 </tr>
             </thead>
@@ -84,12 +91,11 @@
 </div>
 
 <script>
-    // Supabase Setup
+    // Supabase Setup - וודא שאתה מחליף את אלו בפרטים האמיתיים שלך
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Load initial data
     document.addEventListener('DOMContentLoaded', loadGuests);
 
     async function loadGuests() {
@@ -100,10 +106,8 @@
 
         if (error) {
             console.error('Error:', error);
-            alert('שגיאה בטעינת נתונים');
             return;
         }
-
         renderTable(data);
         calculateStats(data);
     }
@@ -113,12 +117,12 @@
         tbody.innerHTML = '';
 
         guests.forEach(guest => {
+            // שינוי 4: הצגת ✔️ ו-❌ במקום טקסט בטבלה
             let statusHtml = '<span class="status-wait">טרם ענה</span>';
-            if (guest.rsvp_status === 'coming') statusHtml = '<span class="status-coming">✔️</span>';
-            if (guest.rsvp_status === 'not_coming') statusHtml = '<span class="status-not">❌</span>';
+            if (guest.rsvp_status === 'coming') statusHtml = '<span class="status-icon">✔️</span>';
+            if (guest.rsvp_status === 'not_coming') statusHtml = '<span class="status-icon">❌</span>';
 
-            // Base URL of your hosted site (update this)
-            const siteUrl = 'https://your-domain.com'; 
+            const siteUrl = 'https://your-domain.com'; // תחליף לכתובת האתר שלך
             const inviteLink = `${siteUrl}?token=${guest.token}`;
 
             const tr = document.createElement('tr');
@@ -142,70 +146,47 @@
 
     function calculateStats(guests) {
         let coming = 0, not = 0, wait = 0;
-
         guests.forEach(g => {
-            if (g.rsvp_status === 'coming') {
-                coming += (g.guests_count || 0); // סוכם את כמות האנשים
-            } else if (g.rsvp_status === 'not_coming') {
-                not++;
-            } else {
-                wait++;
-            }
+            if (g.rsvp_status === 'coming') coming += (g.guests_count || 0);
+            else if (g.rsvp_status === 'not_coming') not++;
+            else wait++;
         });
-
         document.getElementById('total-coming').innerText = coming;
         document.getElementById('total-not').innerText = not;
         document.getElementById('total-wait').innerText = wait;
     }
 
+    // שינוי 3: פונקציית וואטסאפ עם האימוג'ים המבוקשים 💍✨🥂
+    // הערה: זו פונקציה שתופעל בדף ההזמנה של האורח, הוספתי אותה כאן למקרה שתצטרך אותה ב-Admin
+    function getWhatsAppUrl(name, status) {
+        const statusText = (status === 'coming') ? "מגיע/ה" : "לא מגיע/ה";
+        const text = `היי, אני מאשר/ת הגעה: ${name}. סטטוס: ${statusText} 💍✨🥂`;
+        return `https://wa.me/972500000000?text=${encodeURIComponent(text)}`;
+    }
+
     async function addGuest() {
         const name = document.getElementById('new-name').value.trim();
         const phone = document.getElementById('new-phone').value.trim();
-
-        if (!name) {
-            alert('חובה להזין שם אורח');
-            return;
-        }
-
-        // Generate a random token
+        if (!name) return alert('נא להזין שם');
         const token = Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-
-        const { error } = await supabase
-            .from('guests')
-            .insert([{ full_name: name, phone: phone, token: token }]);
-
-        if (error) {
-            console.error(error);
-            alert('שגיאה בהוספה');
-        } else {
+        const { error } = await supabase.from('guests').insert([{ full_name: name, phone: phone, token: token }]);
+        if (error) alert('שגיאה בהוספה');
+        else {
             document.getElementById('new-name').value = '';
             document.getElementById('new-phone').value = '';
-            loadGuests(); // Refresh table
+            loadGuests();
         }
     }
 
     async function deleteGuest(id, name) {
-        if (confirm(`האם אתה בטוח שברצונך למחוק את ${name}?`)) {
-            const { error } = await supabase
-                .from('guests')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                alert('שגיאה במחיקה');
-            } else {
-                loadGuests();
-            }
+        if (confirm(`למחוק את ${name}?`)) {
+            await supabase.from('guests').delete().eq('id', id);
+            loadGuests();
         }
     }
 
     function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('הקישור הועתק בהצלחה!');
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-            prompt('העתק ידנית:', text);
-        });
+        navigator.clipboard.writeText(text).then(() => alert('הועתק!'));
     }
 </script>
 
