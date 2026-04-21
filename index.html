@@ -540,7 +540,7 @@ let selectedCount = 1;
 let currentLang = 'he';
 
 const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('t') || urlParams.get('id');
+const guestId = urlParams.get('id');
 
 // ---- LANGUAGE ----
 function setLang(lang) {
@@ -575,7 +575,7 @@ async function init() {
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    if (!token) {
+    if (!guestId) {
         // No token - show manual form
         document.getElementById('loading-overlay').classList.add('hidden');
         document.getElementById('rsvp-content').classList.remove('hidden');
@@ -585,7 +585,7 @@ async function init() {
     }
 
     try {
-        const { data, error } = await sb.from('guests').select('*').eq('טוקן', token).single();
+        const { data, error } = await sb.from('guests').select('*').eq('id', guestId).single();
         if (error || !data) throw error;
         currentGuest = data;
         document.getElementById('loading-overlay').classList.add('hidden');
