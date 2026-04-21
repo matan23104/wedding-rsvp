@@ -565,7 +565,7 @@ function updateGreeting() {
     const el = document.getElementById('guest-greeting');
     if (!el) return;
     if (currentGuest) {
-        const greet = {he: `שלום, ${currentGuest.name}! 👋`, en: `Hello, ${currentGuest.name}! 👋`, am: `ሰላም፣ ${currentGuest.name}! 👋`};
+        const greet = {he: `שלום, ${currentGuest.full_name}! 👋`, en: `Hello, ${currentGuest.full_name}! 👋`, am: `ሰላም፣ ${currentGuest.full_name}! 👋`};
         el.textContent = greet[currentLang];
     }
 }
@@ -636,7 +636,7 @@ async function submitRsvp() {
                 alert(currentLang === 'he' ? 'אנא מלאו שם וטלפון' : 'Please fill name and phone');
                 return;
             }
-            const { error } = await sb.from('guests').insert([{ name, phone, status, guests_count }]);
+            const { error } = await sb.from('guests').insert([{ full_name: name, 'טלפון': phone, status, guests_count }]);
             if (error) throw error;
         }
         document.getElementById('rsvp-form').classList.add('hidden');
@@ -650,7 +650,7 @@ async function submitRsvp() {
 async function sendQuestion() {
     const msg = document.getElementById('question-text').value.trim();
     if (!msg) return;
-    const guestName = currentGuest ? currentGuest.name : 'אורח';
+    const guestName = currentGuest ? currentGuest.full_name : 'אורח';
     try {
         const { error } = await sb.from('questions').insert([{ guest_name: guestName, question_text: msg }]);
         if (error) throw error;
