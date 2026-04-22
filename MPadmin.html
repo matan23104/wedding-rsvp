@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -619,9 +618,9 @@ tr:hover td { background: #faf7f2; }
           </select>
           <select id="f-status">
             <option value="">כל הסטטוסים</option>
-            <option value="pending">לא ענה</option>
-            <option value="confirmed">מאשר</option>
-            <option value="declined">לא מגיע</option>
+            <option value="pending">⏳ לא ענה</option>
+            <option value="coming">✔️ מאשר</option>
+            <option value="not_coming">❌ לא מגיע</option>
           </select>
         </div>
 
@@ -676,7 +675,7 @@ tr:hover td { background: #faf7f2; }
         <p class="muted" style="margin-bottom:1rem;">הורד את רשימת האורחים והסטטוסים - לקייטרינג, אולם או לגיבוי.</p>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="exportCSV('all')">📄 כל האורחים</button>
-          <button class="btn btn-secondary" onclick="exportCSV('confirmed')">✓ רק מאושרים</button>
+          <button class="btn btn-secondary" onclick="exportCSV('coming')">✓ רק מאושרים</button>
           <button class="btn btn-secondary" onclick="exportCSV('questions')">❓ שאלות</button>
         </div>
       </div>
@@ -793,8 +792,8 @@ async function loadQuestions() {
 // ═══════════════════════════════════════════════════════════════════
 function renderOverview() {
   const total = allGuests.reduce((s, g) => s + (g.guests_count || 1), 0);
-  const confirmed = allGuests.filter(g => g.rsvp_status === 'confirmed').reduce((s, g) => s + (g.guests_count || 1), 0);
-  const declined = allGuests.filter(g => g.rsvp_status === 'declined').length;
+  const confirmed = allGuests.filter(g => g.rsvp_status === 'coming').reduce((s, g) => s + (g.guests_count || 1), 0);
+  const declined = allGuests.filter(g => g.rsvp_status === 'not_coming').length;
   const pending = allGuests.filter(g => g.rsvp_status === 'pending').length;
   const responded = allGuests.length - pending;
   const responseRate = allGuests.length ? Math.round(responded / allGuests.length * 100) : 0;
@@ -828,8 +827,8 @@ function renderOverview() {
     if (!cats[g.category]) cats[g.category] = { total: 0, c: 0, d: 0, p: 0, count: 0 };
     cats[g.category].total += 1;
     cats[g.category].count += (g.guests_count || 1);
-    if (g.rsvp_status === 'confirmed') cats[g.category].c++;
-    else if (g.rsvp_status === 'declined') cats[g.category].d++;
+    if (g.rsvp_status === 'coming') cats[g.category].c++;
+    else if (g.rsvp_status === 'not_coming') cats[g.category].d++;
     else cats[g.category].p++;
   });
 
@@ -883,7 +882,7 @@ function renderGuests() {
     return;
   }
 
-  const statusLabels = { confirmed: 'מאשר', declined: 'לא מגיע', pending: 'לא ענה' };
+  const statusLabels = { coming: '✔️ מאשר', not_coming: '❌ לא מגיע', pending: '⏳ לא ענה' };
   tbody.innerHTML = filtered.map(g => `
     <tr>
       <td><strong>${escapeHtml(g.full_name)}</strong></td>
@@ -937,10 +936,10 @@ async function deleteGuest(id) {
 async function editGuest(id) {
   const g = allGuests.find(x => x.id === id);
   const newStatus = prompt(
-    `ערוך סטטוס עבור ${g.full_name}\npending / confirmed / declined`,
+    `ערוך סטטוס עבור ${g.full_name}\npending / coming / not_coming`,
     g.rsvp_status
   );
-  if (!newStatus || !['pending','confirmed','declined'].includes(newStatus)) return;
+  if (!newStatus || !['pending','coming','not_coming'].includes(newStatus)) return;
   const payload = { rsvp_status: newStatus };
   if (newStatus !== 'pending') payload.responded_at = new Date().toISOString();
   const { error } = await supa.from('guests').update(payload).eq('id', id);
@@ -959,10 +958,10 @@ function showLink(id) {
   document.getElementById('linkGuestName').textContent = `${g.full_name} · ${g.category}`;
   document.getElementById('linkUrl').value = url;
   document.getElementById('linkMessage').value =
-    `היי ${g.full_name.split(' ')[0]} 💍\n\n` +
-    `אנחנו - מתן ופריאל - מתחתנים ב-28.6.2026 ושמחים להזמין אותך!\n\n` +
+    `היי ${g.full_name.split(' ')[0]} 💍✨🥂\n\n` +
+    `אנחנו - מתן ופריאל - מתחתנים ב-28.6.2026 ושמחים להזמין אותך! 🥂\n\n` +
     `קישור לאישור הגעה:\n${url}\n\n` +
-    `נשמח לראות אותך איתנו ✨`;
+    `נשמח לראות אותך איתנו 💍✨`;
   document.getElementById('linkModal').classList.add('show');
 }
 
@@ -1099,15 +1098,15 @@ function exportCSV(type) {
     ]);
     filename = 'wedding-questions.csv';
   } else {
-    const statusLabels = { confirmed: 'מאשר', declined: 'לא מגיע', pending: 'לא ענה' };
+    const statusLabels = { coming: '✔️ מאשר', not_coming: '❌ לא מגיע', pending: '⏳ לא ענה' };
     let data = allGuests;
-    if (type === 'confirmed') data = data.filter(g => g.rsvp_status === 'confirmed');
+    if (type === 'coming') data = data.filter(g => g.rsvp_status === 'coming');
     header = ['שם', 'טלפון', 'קטגוריה', 'סטטוס', 'כמות', 'הערות'];
     rows = data.map(g => [
       g.full_name, g.phone || '', g.category,
       statusLabels[g.rsvp_status], g.guests_count || 1, g.notes || ''
     ]);
-    filename = type === 'confirmed' ? 'wedding-confirmed.csv' : 'wedding-all.csv';
+    filename = type === 'coming' ? 'wedding-confirmed.csv' : 'wedding-all.csv';
   }
   const csv = '\uFEFF' + [header, ...rows].map(r =>
     r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
