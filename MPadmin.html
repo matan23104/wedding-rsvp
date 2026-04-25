@@ -598,9 +598,12 @@ tr:hover td { background: #faf7f2; }
     <h1 class="serif">ניהול חתונה</h1>
     <p class="subtitle">מתן & פריאל · 28.6.2026</p>
     <form id="loginForm">
-      <label for="pwd">סיסמת גישה</label>
-      <input type="password" id="pwd" autofocus required>
+      <label for="adminEmail">אימייל אדמין</label>
+      <input type="email" id="adminEmail" autofocus required>
+      <label for="adminPassword" style="margin-top:0.75rem;">סיסמה</label>
+      <input type="password" id="adminPassword" required>
       <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem; justify-content:center;">כניסה ←</button>
+      <p class="muted" style="margin-top:0.75rem;">התחברות מאובטחת דרך Supabase Auth</p>
     </form>
   </div>
 </div>
@@ -814,34 +817,56 @@ const supa = window.supabase.createClient(WEDDING_CONFIG.SUPABASE_URL, WEDDING_C
 let allGuests = [];
 let allQuestions = [];
 let currentGuestForLink = null;
+let isAppVisible = false;
 
 // ═══════════════════════════════════════════════════════════════════
-// Auth (simple client-side password - good enough for our case)
+// Auth (Supabase email/password)
 // ═══════════════════════════════════════════════════════════════════
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const pwd = document.getElementById('pwd').value;
-  if (pwd === WEDDING_CONFIG.ADMIN_PASSWORD) {
-    sessionStorage.setItem('mp_auth', '1');
-    showApp();
-  } else {
-    toast('סיסמה שגויה', 'error');
-    document.getElementById('pwd').value = '';
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) {
+    toast('התחברות נכשלה: ' + error.message, 'error');
+    document.getElementById('adminPassword').value = '';
   }
 });
 
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').classList.add('active');
-  refreshAll();
+  if (!isAppVisible) {
+    isAppVisible = true;
+    refreshAll();
+  }
 }
 
-function logout() {
-  sessionStorage.removeItem('mp_auth');
-  location.reload();
+function showLogin() {
+  isAppVisible = false;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('loginScreen').style.display = 'flex';
 }
 
-if (sessionStorage.getItem('mp_auth') === '1') showApp();
+async function logout() {
+  await supa.auth.signOut();
+  showLogin();
+  toast('התנתקת בהצלחה', 'success');
+}
+
+async function bootstrapAuth() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) showApp();
+  else showLogin();
+}
+
+supa.auth.onAuthStateChange((_event, session) => {
+  if (session) showApp();
+  else showLogin();
+});
+
+bootstrapAuth();
 
 // ═══════════════════════════════════════════════════════════════════
 // Tabs

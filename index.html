@@ -539,11 +539,9 @@ async function init() {
     }
 
     try {
-        // Fetch guest by id column
+        // Fetch guest through RPC (works with strict RLS)
         const { data, error } = await sb
-            .from('guests')
-            .select('*')
-            .eq('token', guestToken)
+            .rpc('get_guest_by_token', { p_token: guestToken })
             .single();
 
         if (error || !data) throw error || new Error('Guest not found');
@@ -593,20 +591,11 @@ async function submitRsvp() {
 
     try {
         if (currentGuest && guestToken) {
-            // Build update object - only include fields that exist on currentGuest
-            const updateData = {};
-            if ('rsvp_status' in currentGuest) updateData.rsvp_status = rsvp_status;
-            if ('guests_count' in currentGuest) updateData.guests_count = guests_count;
-
-            console.log('Updating guest id:', currentGuest.id);
-            console.log('Update data:', updateData);
-
-            // UPDATE existing guest by id column
-            const { data, error } = await sb
-                .from('guests')
-                .update(updateData)
-                .eq('id', currentGuest.id)
-                .select();
+            const { data, error } = await sb.rpc('submit_rsvp_by_token', {
+                p_token: guestToken,
+                p_rsvp_status: rsvp_status,
+                p_guests_count: guests_count
+            });
 
             if (error) {
                 console.error('=== SUPABASE UPDATE ERROR ===');
@@ -626,15 +615,12 @@ async function submitRsvp() {
                 alert(currentLang === 'he' ? 'אנא מלאו שם וטלפון' : 'Please fill name and phone');
                 return;
             }
-            const newGuest = {
-                full_name: name,
-                rsvp_status: rsvp_status,
-                guests_count: guests_count
-            };
-            newGuest['phone'] = phone;
-
-            console.log('Inserting new guest:', newGuest);
-            const { data, error } = await sb.from('guests').insert([newGuest]).select();
+            const { data, error } = await sb.rpc('submit_rsvp_manual', {
+                p_full_name: name,
+                p_phone: phone,
+                p_rsvp_status: rsvp_status,
+                p_guests_count: guests_count
+            });
 
             if (error) {
                 console.error('=== SUPABASE INSERT ERROR ===');
@@ -661,9 +647,10 @@ async function sendQuestion() {
     if (!msg) return;
     const guestName = currentGuest ? currentGuest.full_name : 'אורח';
     try {
-        const { error } = await sb
-            .from('questions')
-            .insert([{ guest_name: guestName, question_text: msg }]);
+        const { error } = await sb.rpc('submit_question_public', {
+            p_guest_name: guestName,
+            p_question_text: msg
+        });
         if (error) throw error;
         document.getElementById('question-text').value = '';
         alert(currentLang === 'he' ? 'השאלה נשלחה! 💌' : 'Message sent! 💌');
