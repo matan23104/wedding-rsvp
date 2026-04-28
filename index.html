@@ -175,25 +175,6 @@ body {
     transition: border-color 0.2s;
 }
 .form-input:focus { outline: none; border-color: var(--gold); }
-.guest-count-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-bottom: 16px;
-}
-.count-btn {
-    padding: 12px 0;
-    border: 2px solid var(--gold);
-    background: white;
-    color: var(--gold);
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Heebo', sans-serif;
-}
-.count-btn.selected { background: var(--gold); color: white; }
 .attendance-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -382,17 +363,6 @@ body {
                     <button class="attend-btn no" onclick="selectAttend(false)" id="btn-no">😢 <span data-he="לא נוכל" data-en="Can\'t make it" data-am="መምጣት አንችልም">לא נוכל</span></button>
                 </div>
 
-                <div id="count-section" class="hidden">
-                    <div class="form-label" data-he="כמה אורחים?" data-en="How many guests?" data-am="ስንት እንደሆናችሁ?">כמה אורחים?</div>
-                    <div class="guest-count-row">
-                        <button class="count-btn" onclick="selectCount(1)">1</button>
-                        <button class="count-btn" onclick="selectCount(2)">2</button>
-                        <button class="count-btn" onclick="selectCount(3)">3</button>
-                        <button class="count-btn" onclick="selectCount(4)">4</button>
-                        <button class="count-btn" onclick="selectCount(5)">5+</button>
-                    </div>
-                </div>
-
                 <div id="manual-fields" class="hidden">
                     <div class="form-group">
                         <label class="form-label" data-he="שם מלא" data-en="Full name" data-am="ሙሉ ስም">שם מלא</label>
@@ -503,7 +473,6 @@ const sb = supabase.createClient(
 // ==== STATE ====
 let currentGuest = null;
 let selectedAttendance = null;
-let selectedCount = 1;
 let currentLang = 'he';
 
 // ==== URL PARAM - ID ONLY ====
@@ -590,9 +559,6 @@ async function init() {
         if (data.rsvp_status && data.rsvp_status !== 'pending') {
             selectAttend(data.rsvp_status === 'coming');
         }
-        if (data.guests_count && data.guests_count > 0) {
-            selectCount(Math.min(data.guests_count, 5));
-        }
     } catch (err) {
         console.error('Init error:', err);
         document.getElementById('loading-overlay').innerHTML =
@@ -605,14 +571,6 @@ function selectAttend(yes) {
     selectedAttendance = yes;
     document.getElementById('btn-yes').classList.toggle('selected', yes);
     document.getElementById('btn-no').classList.toggle('selected', !yes);
-    document.getElementById('count-section').classList.toggle('hidden', !yes);
-}
-
-function selectCount(n) {
-    selectedCount = n;
-    document.querySelectorAll('.count-btn').forEach((b, i) => {
-        b.classList.toggle('selected', i + 1 === n);
-    });
 }
 
 async function submitRsvp() {
@@ -622,7 +580,7 @@ async function submitRsvp() {
     }
 
     const rsvp_status = selectedAttendance ? 'coming' : 'not_coming';
-    const guests_count = selectedAttendance ? selectedCount : 0;
+    const guests_count = selectedAttendance ? 1 : 0;
 
     try {
         if (currentGuest && guestToken) {

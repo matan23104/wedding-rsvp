@@ -696,10 +696,6 @@ tr:hover td { background: #faf7f2; }
                 <option>ילדים קטנים</option>
               </select>
             </div>
-            <div>
-              <label for="g-count">כמות</label>
-              <input type="number" id="g-count" min="1" value="1">
-            </div>
           </div>
           <button type="submit" class="btn btn-primary">+ הוסף אורח</button>
         </form>
@@ -741,7 +737,6 @@ tr:hover td { background: #faf7f2; }
                 <th>טלפון</th>
                 <th>קטגוריה</th>
                 <th>סטטוס</th>
-                <th>כמות</th>
                 <th>פעולות</th>
               </tr>
             </thead>
@@ -771,8 +766,8 @@ tr:hover td { background: #faf7f2; }
       <div class="card">
         <h2 class="serif">ייבוא מרשימת אורחים (Excel / CSV)</h2>
         <p class="muted" style="margin-bottom:1rem;">
-          ניתן להעלות קובץ Excel או CSV בפורמט: <code>full_name,phone,category,guests_count</code><br>
-          אם הקטגוריה חסרה, ישויך אוטומטית: <code>רשימת תפוצה</code>
+          ניתן להעלות קובץ Excel או CSV בפורמט פשוט: <code>full_name,phone</code><br>
+          שדות נוספים נתמכים גם כן, ואם הקטגוריה חסרה היא תשויך אוטומטית: <code>רשימת תפוצה</code>
         </p>
         <input type="file" id="csvFile" accept=".csv,.xlsx,.xls">
         <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="importGuestFile()">📥 ייבא</button>
@@ -1000,8 +995,8 @@ async function loadQuestions() {
 // Overview
 // ═══════════════════════════════════════════════════════════════════
 function renderOverview() {
-  const total = allGuests.reduce((s, g) => s + (g.guests_count || 1), 0);
-  const confirmed = allGuests.filter(g => g.rsvp_status === 'coming').reduce((s, g) => s + (g.guests_count || 1), 0);
+  const total = allGuests.length;
+  const confirmed = allGuests.filter(g => g.rsvp_status === 'coming').length;
   const declined = allGuests.filter(g => g.rsvp_status === 'not_coming').length;
   const pending = allGuests.filter(g => g.rsvp_status === 'pending').length;
   const responded = allGuests.length - pending;
@@ -1016,7 +1011,7 @@ function renderOverview() {
     <div class="stat confirmed">
       <div class="label">מאושרים</div>
       <div class="value">${confirmed}</div>
-      <div class="sub">נפשות מאשרות הגעה</div>
+      <div class="sub">אורחים שאישרו הגעה</div>
     </div>
     <div class="stat declined">
       <div class="label">לא מגיעים</div>
@@ -1033,9 +1028,8 @@ function renderOverview() {
   // Categories
   const cats = {};
   allGuests.forEach(g => {
-    if (!cats[g.category]) cats[g.category] = { total: 0, c: 0, d: 0, p: 0, count: 0 };
+    if (!cats[g.category]) cats[g.category] = { total: 0, c: 0, d: 0, p: 0 };
     cats[g.category].total += 1;
-    cats[g.category].count += (g.guests_count || 1);
     if (g.rsvp_status === 'coming') cats[g.category].c++;
     else if (g.rsvp_status === 'not_coming') cats[g.category].d++;
     else cats[g.category].p++;
@@ -1052,7 +1046,7 @@ function renderOverview() {
     const pP = s.total ? s.p / s.total * 100 : 0;
     return `
       <div class="cat-card">
-        <h4>${escapeHtml(name)} <span class="total">${s.count}</span></h4>
+        <h4>${escapeHtml(name)} <span class="total">${s.total}</span></h4>
         <div class="cat-stats">
           <span>✓ <span class="c">${s.c}</span></span>
           <span>✗ <span class="d">${s.d}</span></span>
@@ -1087,7 +1081,7 @@ function renderGuests() {
 
   const tbody = document.getElementById('guestsTable');
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;" class="muted">אין תוצאות</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem;" class="muted">אין תוצאות</td></tr>`;
     return;
   }
 
@@ -1103,7 +1097,6 @@ function renderGuests() {
       <td>${escapeHtml(g.phone || '–')}</td>
       <td>${escapeHtml(g.category)}</td>
       <td><span class="status-pill status-${g.rsvp_status}">${statusLabels[g.rsvp_status]}</span></td>
-      <td>${g.guests_count || 1}</td>
       <td>
         <div class="row-actions">
           <button class="btn btn-wa btn-icon" onclick="sendWhatsApp('${g.id}')" title="שלח בוואטסאפ">💬 WA</button>
@@ -1133,14 +1126,12 @@ document.getElementById('addGuestForm').addEventListener('submit', async (e) => 
   const payload = {
     full_name: document.getElementById('g-name').value.trim(),
     phone: document.getElementById('g-phone').value.trim() || null,
-    category: document.getElementById('g-category').value,
-    guests_count: parseInt(document.getElementById('g-count').value) || 1
+    category: document.getElementById('g-category').value
   };
   const { error } = await supa.from('guests').insert(payload);
   if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
   toast('אורח נוסף בהצלחה', 'success');
   e.target.reset();
-  document.getElementById('g-count').value = 1;
   refreshAll();
 });
 
@@ -1304,8 +1295,7 @@ async function parseGuestRowsFromFile(file) {
   return bodyRows.map((cells) => ({
     full_name: String(cells?.[0] || '').trim(),
     phone: String(cells?.[1] || '').trim() || null,
-    category: String(cells?.[2] || '').trim() || DEFAULT_IMPORT_CATEGORY,
-    guests_count: parseInt(cells?.[3], 10) || 1
+    category: String(cells?.[2] || '').trim() || DEFAULT_IMPORT_CATEGORY
   })).filter(r => r.full_name);
 }
 
@@ -1336,10 +1326,10 @@ function exportCSV(type) {
     const statusLabels = { coming: '✔️ מאשר', not_coming: '❌ לא מגיע', pending: '⏳ לא ענה' };
     let data = allGuests;
     if (type === 'coming') data = data.filter(g => g.rsvp_status === 'coming');
-    header = ['שם', 'טלפון', 'קטגוריה', 'סטטוס', 'כמות', 'הערות'];
+    header = ['שם', 'טלפון', 'קטגוריה', 'סטטוס', 'הערות'];
     rows = data.map(g => [
       g.full_name, g.phone || '', g.category,
-      statusLabels[g.rsvp_status], g.guests_count || 1, g.notes || ''
+      statusLabels[g.rsvp_status], g.notes || ''
     ]);
     filename = type === 'coming' ? 'wedding-confirmed.csv' : 'wedding-all.csv';
   }
@@ -1353,9 +1343,9 @@ function exportCSV(type) {
 function downloadTemplate() {
   const template =
     '\uFEFF' +
-    'full_name,phone,category,guests_count\n' +
-    'יוסי כהן,0501234567,חברים שלי,2\n' +
-    'שרה לוי,0509876543,משפחה שלה,1\n';
+    'full_name,phone\n' +
+    'יוסי כהן,0501234567\n' +
+    'שרה לוי,0509876543\n';
   downloadFile(template, 'wedding-template.csv');
 }
 
