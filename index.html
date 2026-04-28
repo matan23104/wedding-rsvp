@@ -498,6 +498,8 @@ function isRpcMissing(error) {
     return !!(error && error.code === 'PGRST202');
 }
 
+const DEFAULT_PUBLIC_CATEGORY = 'אתר ציבורי';
+
 // ==== LANGUAGE ====
 function setLang(lang) {
     currentLang = lang;
@@ -645,12 +647,13 @@ async function submitRsvp() {
                 p_guests_count: guests_count
             });
 
-            if (isRpcMissing(error)) {
+            if (isRpcMissing(error) || error?.code === '23502') {
                 ({ data, error } = await sb
                     .from('guests')
                     .insert([{
                         full_name: name,
                         phone,
+                        category: DEFAULT_PUBLIC_CATEGORY,
                         rsvp_status,
                         guests_count
                     }])

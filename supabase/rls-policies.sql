@@ -100,7 +100,8 @@ create or replace function public.submit_rsvp_manual(
   p_full_name text,
   p_phone text,
   p_rsvp_status text,
-  p_guests_count integer
+  p_guests_count integer,
+  p_category text default 'אתר ציבורי'
 )
 returns public.guests
 language plpgsql
@@ -113,12 +114,14 @@ begin
   insert into public.guests (
     full_name,
     phone,
+    category,
     rsvp_status,
     guests_count
   )
   values (
     p_full_name,
     nullif(p_phone, ''),
+    coalesce(nullif(p_category, ''), 'אתר ציבורי'),
     p_rsvp_status,
     greatest(coalesce(p_guests_count, 1), 0)
   )
@@ -157,7 +160,7 @@ $$;
 -- Grant execute to public API roles
 grant execute on function public.get_guest_by_token(text) to anon, authenticated;
 grant execute on function public.submit_rsvp_by_token(text, text, integer, text) to anon, authenticated;
-grant execute on function public.submit_rsvp_manual(text, text, text, integer) to anon, authenticated;
+grant execute on function public.submit_rsvp_manual(text, text, text, integer, text) to anon, authenticated;
 grant execute on function public.submit_question_public(text, text) to anon, authenticated;
 
 commit;
