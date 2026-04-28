@@ -672,6 +672,8 @@ async function submitRsvp() {
                 throw error;
             }
             console.log('Insert success:', data);
+            // Keep manual guest identity for follow-up actions (e.g., questions after RSVP).
+            currentGuest = { ...(currentGuest || {}), full_name: name, phone };
         }
         document.getElementById('rsvp-form').classList.add('hidden');
         document.getElementById('thank-you').classList.remove('hidden');
