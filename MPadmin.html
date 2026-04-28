@@ -27,6 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="./config.js"></script>
 <style>
 :root {
@@ -661,6 +662,8 @@ tr:hover td { background: #faf7f2; }
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
           <button class="btn btn-wa" onclick="sendNextGuest('wa')">💬 שלח לאורח הבא בוואטסאפ</button>
           <button class="btn btn-sms" onclick="sendNextGuest('sms')">📱 שלח לאורח הבא ב-SMS</button>
+          <button class="btn btn-wa" onclick="sendAllGuests('wa')">📣 שלח לכולם בוואטסאפ</button>
+          <button class="btn btn-sms" onclick="sendAllGuests('sms')">📣 שלח לכולם ב-SMS</button>
         </div>
         <div class="contact-progress" id="contactProgress"></div>
       </div>
@@ -766,13 +769,13 @@ tr:hover td { background: #faf7f2; }
     <!-- ═════ Import/Export Tab ═════ -->
     <div id="tab-import" class="tab-content">
       <div class="card">
-        <h2 class="serif">ייבוא מ-CSV</h2>
+        <h2 class="serif">ייבוא מרשימת אורחים (Excel / CSV)</h2>
         <p class="muted" style="margin-bottom:1rem;">
-          העלה קובץ CSV בפורמט: <code>full_name,phone,category,guests_count</code><br>
-          לדוגמה: <code>יוסי כהן,0501234567,חברים שלי,2</code>
+          ניתן להעלות קובץ Excel או CSV בפורמט: <code>full_name,phone,category,guests_count</code><br>
+          אם הקטגוריה חסרה, ישויך אוטומטית: <code>רשימת תפוצה</code>
         </p>
-        <input type="file" id="csvFile" accept=".csv">
-        <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="importCSV()">📥 ייבא</button>
+        <input type="file" id="csvFile" accept=".csv,.xlsx,.xls">
+        <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="importGuestFile()">📥 ייבא</button>
         <div id="importResult" style="margin-top:1rem;"></div>
       </div>
 
@@ -1259,21 +1262,12 @@ async function deleteQuestion(id) {
 // ═══════════════════════════════════════════════════════════════════
 // CSV import/export
 // ═══════════════════════════════════════════════════════════════════
-async function importCSV() {
+const DEFAULT_IMPORT_CATEGORY = 'רשימת תפוצה';
+
+async function importGuestFile() {
   const file = document.getElementById('csvFile').files[0];
   if (!file) { toast('בחר קובץ', 'error'); return; }
-  const text = await file.text();
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  const header = lines.shift();
-  const rows = lines.map(line => {
-    const cells = parseCSVLine(line);
-    return {
-      full_name: (cells[0] || '').trim(),
-      phone: (cells[1] || '').trim() || null,
-      category: (cells[2] || '').trim(),
-      guests_count: parseInt(cells[3]) || 1
-    };
-  }).filter(r => r.full_name && r.category);
+  const rows = await parseGuestRowsFromFile(file);
 
   if (rows.length === 0) {
     document.getElementById('importResult').innerHTML = '<span style="color:var(--danger)">לא נמצאו שורות תקינות</span>';
@@ -1289,6 +1283,30 @@ async function importCSV() {
     toast(`יובאו ${rows.length} אורחים`, 'success');
     refreshAll();
   }
+}
+
+async function parseGuestRowsFromFile(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  let matrix = [];
+
+  if (ext === 'xlsx' || ext === 'xls') {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const first = wb.SheetNames[0];
+    matrix = XLSX.utils.sheet_to_json(wb.Sheets[first], { header: 1, raw: false });
+  } else {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    matrix = lines.map(parseCSVLine);
+  }
+
+  const bodyRows = matrix.slice(1);
+  return bodyRows.map((cells) => ({
+    full_name: String(cells?.[0] || '').trim(),
+    phone: String(cells?.[1] || '').trim() || null,
+    category: String(cells?.[2] || '').trim() || DEFAULT_IMPORT_CATEGORY,
+    guests_count: parseInt(cells?.[3], 10) || 1
+  })).filter(r => r.full_name);
 }
 
 function parseCSVLine(line) {
@@ -1373,11 +1391,13 @@ function toast(msg, type = '') {
 function buildInviteMessage(guest) {
   const token = guest.token || guest.id;
   const link = `${WEDDING_CONFIG.SITE_URL}?t=${token}`;
-  const firstName = (guest.full_name || '').split(' ')[0];
-  return `היי ${firstName} 👋\n\n` +
-    `אנחנו - מתן ופריאל - מתחתנים ביום ראשון, י״ג בתמוז התשפ״ו (28.06.2026), ושמחים להזמין אותך! 🥂\n\n` +
-    `קישור לאישור הגעה:\n${link}\n\n` +
-    `נשמח לראות אותך איתנו! 💍❤️`;
+  const fullName = guest.full_name || 'אורח/ת';
+  return `היי 👋 ${fullName}\n` +
+    `אנחנו מתן ופריאל - מתחתנים\n` +
+    `ב י״ג תמוז (28.6.26) שמחים להזמינך להשתתף בשמחתנו 🥂\n\n` +
+    `קישור לאישור הגעה:\n\n` +
+    `${link}\n\n` +
+    `נשמח לראותכם בין אורחינו🤍💍`;
 }
 
 // Format phone for wa.me (international format)
@@ -1461,10 +1481,8 @@ function sendSMS(guestId) {
   const phone = formatPhoneLocal(g.phone);
   if (!phone) { toast('אין מספר טלפון', 'error'); return; }
   const msg = buildInviteMessage(g);
-  // iOS uses &body= with & separator, Android uses ?body=
-  // Using ?body= works on both modern devices
   const url = `sms:${phone}?body=${encodeURIComponent(msg)}`;
-  window.location.href = url;
+  window.open(url, '_blank');
   markContacted(guestId);
   setTimeout(() => { renderGuests(); updateContactProgress(); }, 500);
 }
@@ -1484,6 +1502,28 @@ function sendNextGuest(channel) {
   const next = pending[0];
   if (channel === 'wa') sendWhatsApp(next.id);
   else sendSMS(next.id);
+}
+
+function sendAllGuests(channel) {
+  const filter = document.getElementById('f-category').value;
+  const pending = allGuests.filter(g => {
+    if (filter && g.category !== filter) return false;
+    return !!g.phone;
+  });
+  if (pending.length === 0) {
+    toast('לא נמצאו אורחים עם טלפון לשליחה', 'error');
+    return;
+  }
+
+  const ok = confirm(`לפתוח ${pending.length} הודעות ${channel === 'wa' ? 'וואטסאפ' : 'SMS'}?`);
+  if (!ok) return;
+
+  pending.forEach((g, idx) => {
+    setTimeout(() => {
+      if (channel === 'wa') sendWhatsApp(g.id);
+      else sendSMS(g.id);
+    }, idx * 550);
+  });
 }
 
 </script>
