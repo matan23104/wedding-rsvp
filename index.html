@@ -24,6 +24,7 @@
 <meta name="theme-color" content="#8B6914">
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
 <style>
 :root {
     --gold: #8B6914;
@@ -480,9 +481,10 @@ body {
 
 <script>
 // ==== SUPABASE CONFIG ====
-const SB_URL = "https://zuohyggfphbgntlqyofa.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1b2h5Z2dmcGhiZ250bHF5b2ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTA0MzQsImV4cCI6MjA5MjI4NjQzNH0.eveHZ8qFzR34Wr1m2OGkIKtpEG6PXfffVTXDsercnHs";
-const sb = supabase.createClient(SB_URL, SB_KEY);
+const sb = supabase.createClient(
+    WEDDING_CONFIG.SUPABASE_URL,
+    WEDDING_CONFIG.SUPABASE_ANON_KEY
+);
 
 // ==== STATE ====
 let currentGuest = null;
