@@ -474,6 +474,11 @@ let currentLang = 'he';
 // ==== URL PARAM - ID ONLY ====
 const urlParams = new URLSearchParams(window.location.search);
 const guestToken = urlParams.get('t') || urlParams.get('id');
+const sideParamRaw = String(urlParams.get('side') || '').toLowerCase();
+const forcedInviteSide =
+    sideParamRaw === 'bri' ? 'bride' :
+    sideParamRaw === 'gro' ? 'groom' : null;
+const MAX_RSVP_GUESTS = 8;
 
 function isRpcMissing(error) {
     return !!(error && error.code === 'PGRST202');
@@ -520,7 +525,7 @@ function updateGreeting() {
 (function initGuestCountSelect() {
     const sel = document.getElementById('guest-count-select');
     if (!sel) return;
-    for (let n = 1; n <= 30; n++) {
+    for (let n = 1; n <= MAX_RSVP_GUESTS; n++) {
         const o = document.createElement('option');
         o.value = String(n);
         o.textContent = String(n);
@@ -570,7 +575,7 @@ async function init() {
         // Pre-select previous response if exists
         if (data.rsvp_status && data.rsvp_status !== 'pending') {
             if (data.rsvp_status === 'coming' && data.guests_count != null) {
-                const c = Math.max(1, Math.min(30, Number(data.guests_count) || 1));
+                const c = Math.max(1, Math.min(MAX_RSVP_GUESTS, Number(data.guests_count) || 1));
                 selectedCount = c;
                 const sel = document.getElementById('guest-count-select');
                 if (sel) sel.value = String(c);
@@ -593,7 +598,7 @@ function selectAttend(yes) {
     const sel = document.getElementById('guest-count-select');
     if (countSec) countSec.classList.toggle('hidden', !yes);
     if (yes && sel) {
-        sel.value = String(Math.max(1, Math.min(30, selectedCount || 1)));
+        sel.value = String(Math.max(1, Math.min(MAX_RSVP_GUESTS, selectedCount || 1)));
         selectedCount = parseInt(sel.value, 10) || 1;
     }
 }
@@ -611,7 +616,7 @@ async function submitRsvp() {
         alert(currentLang === 'he' ? 'אנא בחרו כמה מגיעים' : 'Please select how many guests');
         return;
     }
-    if (selectedAttendance) guests_count = Math.min(30, Math.max(1, guests_count));
+    if (selectedAttendance) guests_count = Math.min(MAX_RSVP_GUESTS, Math.max(1, guests_count));
 
     try {
         if (currentGuest && guestToken) {
@@ -745,6 +750,8 @@ function getBitPayMeUrlForGuest(guest) {
     const cfg = window.WEDDING_CONFIG || {};
     const groom = String(cfg.BIT_PAY_ME_URL || cfg.BIT_PAY_ME_URL_GROOM || '').trim();
     const bride = String(cfg.BIT_PAY_ME_URL_BRIDE || '').trim();
+    if (forcedInviteSide === 'bride' && bride) return bride;
+    if (forcedInviteSide === 'groom') return groom;
     if (guest && guest.invite_side === 'bride' && bride) return bride;
     return groom;
 }

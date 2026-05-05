@@ -13,6 +13,9 @@ alter table public.guests
 
 update public.guests set invite_side = 'groom' where invite_side is null or invite_side = '';
 
+-- Required because return type/OUT columns changed between versions.
+drop function if exists public.get_guest_by_token(text);
+
 create or replace function public.get_guest_by_token(p_token text)
 returns table(
   id uuid,
@@ -47,5 +50,7 @@ as $$
   where g.token = p_token
   limit 1;
 $$;
+
+grant execute on function public.get_guest_by_token(text) to anon, authenticated;
 
 notify pgrst, 'reload schema';
