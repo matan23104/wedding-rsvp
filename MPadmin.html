@@ -669,8 +669,14 @@ tr:hover td { background: #faf7f2; }
           <button class="btn btn-sms" onclick="sendNextGuest('sms')">📱 שלח לאורח הבא ב-SMS</button>
           <button class="btn btn-wa" onclick="sendAllGuestsSequential('wa')">📣 וואטסאפ לכולם (אחד־אחד + אישור)</button>
           <button class="btn btn-sms" onclick="sendAllGuestsSequential('sms')">📣 SMS לכולם (אחד־אחד + אישור)</button>
+          <button class="btn btn-wa" onclick="startFreeCampaign('invite')">🎯 התחל קמפיין חינמי (הזמנה)</button>
+          <button class="btn btn-wa" onclick="startFreeCampaign('gift_reminder')">💛 התחל קמפיין חינמי (תזכורת מתנה)</button>
+          <button class="btn btn-secondary" onclick="resumeFreeCampaign()">▶ המשך קמפיין</button>
+          <button class="btn btn-secondary" onclick="exportFreeCampaignReport()">⬇ דוח קמפיין</button>
+          <button class="btn btn-danger" onclick="clearFreeCampaign()">🧹 אפס קמפיין</button>
           <button class="btn btn-secondary" onclick="downloadInviteMessagesBulkFile()">⬇ הורד קובץ הודעות (כל האורחים)</button>
         </div>
+        <div id="freeCampaignStatus" class="card" style="margin:0 0 0.8rem 0; padding:1rem; background:#fcfbf8;"></div>
         <div class="contact-progress" id="contactProgress"></div>
       </div>
 
@@ -1657,6 +1663,305 @@ ${link}
 נתראה בקרוב 💛`;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// Free campaign mode (backend state only)
+// ═══════════════════════════════════════════════════════════════════
+let activeFreeCampaignId = null;
+
+async function getCurrentUserId() {
+  const { data, error } = await supa.auth.getUser();
+  if (error || !data?.user?.id) return null;
+  return data.user.id;
+}
+
+function buildFreeCampaignQueue(mode) {
+  const catF = document.getElementById('f-category').value || '';
+  const sideF = document.getElementById('f-side').value || '';
+  const onlyConfirmed = mode === 'gift_reminder';
+  const queue = allGuests.filter(g => {
+    if (!g.phone || !formatPhoneIntl(g.phone)) return false;
+    if (catF && g.category !== catF) return false;
+    if (sideF && guestSideRaw(g) !== sideF) return false;
+    if (onlyConfirmed && g.rsvp_status !== 'coming') return false;
+    return true;
+  }).map(g => g.id);
+  return { queue, catF, sideF, onlyConfirmed };
+}
+
+async function startFreeCampaign(mode = 'invite') {
+  const { queue, catF, sideF, onlyConfirmed } = buildFreeCampaignQueue(mode);
+  if (queue.length === 0) {
+    toast('אין אורחים מתאימים לקמפיין לפי המסננים', 'error');
+    return;
+  }
+  const label = mode === 'gift_reminder' ? 'תזכורת מתנה' : 'הזמנה';
+  const ok = confirm(
+    `להתחיל קמפיין "${label}" ל-${queue.length} אורחים?\n` +
+    `קטגוריה: ${catF || 'הכל'} | צד: ${sideF || 'הכל'}`
+  );
+  if (!ok) return;
+
+  const userId = await getCurrentUserId();
+  const { data: campaignRows, error: campaignErr } = await supa
+    .from('message_campaigns')
+    .insert({
+      channel: 'whatsapp',
+      mode,
+      filter_category: catF || null,
+      filter_side: sideF || null,
+      only_confirmed: onlyConfirmed,
+      dry_run: false,
+      total_targets: queue.length,
+      total_sent: 0,
+      total_failed: 0,
+      created_by: userId
+    })
+    .select('id')
+    .limit(1);
+  if (campaignErr || !campaignRows?.[0]?.id) {
+    toast('שגיאה בפתיחת קמפיין', 'error');
+    console.error('startFreeCampaign campaign insert', campaignErr);
+    return;
+  }
+
+  const campaignId = campaignRows[0].id;
+  const rows = queue.map((guestId) => {
+    const g = allGuests.find(x => x.id === guestId);
+    return {
+      campaign_id: campaignId,
+      guest_id: guestId,
+      phone: g?.phone || null,
+      status: 'queued',
+      payload: { mode }
+    };
+  });
+  const { error: itemErr } = await supa.from('message_campaign_items').insert(rows);
+  if (itemErr) {
+    toast('שגיאה ביצירת רשימת קמפיין', 'error');
+    console.error('startFreeCampaign items insert', itemErr);
+    return;
+  }
+
+  activeFreeCampaignId = campaignId;
+  await renderFreeCampaignStatus();
+  await openCurrentFreeCampaignChat();
+}
+
+async function findActiveCampaign() {
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+  const { data, error } = await supa
+    .from('message_campaigns')
+    .select('id, mode, total_targets, total_sent, total_failed, created_at, filter_category, filter_side')
+    .eq('created_by', userId)
+    .eq('channel', 'whatsapp')
+    .eq('dry_run', false)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (error) return null;
+  return (data || []).find(c => (Number(c.total_sent) + Number(c.total_failed)) < Number(c.total_targets)) || null;
+}
+
+async function clearFreeCampaign() {
+  const camp = activeFreeCampaignId ? { id: activeFreeCampaignId } : await findActiveCampaign();
+  if (!camp?.id) {
+    toast('אין קמפיין פעיל לאיפוס', 'error');
+    return;
+  }
+  if (!confirm('לאפס את הקמפיין הפעיל? כל הסטטוסים בתור יימחקו.')) return;
+  const { error } = await supa.from('message_campaigns').delete().eq('id', camp.id);
+  if (error) {
+    toast('שגיאה באיפוס קמפיין', 'error');
+    console.error(error);
+    return;
+  }
+  activeFreeCampaignId = null;
+  await renderFreeCampaignStatus();
+  toast('הקמפיין אופס', 'success');
+}
+
+async function resumeFreeCampaign() {
+  const camp = await findActiveCampaign();
+  if (!camp) {
+    toast('אין קמפיין שמור', 'error');
+    return;
+  }
+  activeFreeCampaignId = camp.id;
+  await renderFreeCampaignStatus();
+  await openCurrentFreeCampaignChat();
+}
+
+async function getNextQueuedItem(campaignId) {
+  const { data, error } = await supa
+    .from('message_campaign_items')
+    .select('id, guest_id, phone, status')
+    .eq('campaign_id', campaignId)
+    .eq('status', 'queued')
+    .order('created_at', { ascending: true })
+    .limit(1);
+  if (error) return null;
+  return data?.[0] || null;
+}
+
+async function openCurrentFreeCampaignChat() {
+  const camp = activeFreeCampaignId ? { id: activeFreeCampaignId } : await findActiveCampaign();
+  if (!camp?.id) {
+    toast('אין קמפיין פעיל', 'error');
+    return;
+  }
+  activeFreeCampaignId = camp.id;
+  const item = await getNextQueuedItem(camp.id);
+  if (!item) {
+    toast('אין עוד הודעות בתור — הקמפיין הסתיים', 'success');
+    await renderFreeCampaignStatus();
+    return;
+  }
+  const g = allGuests.find(x => x.id === item.guest_id);
+  if (!g) {
+    toast('האורח הנוכחי לא נמצא ברשימה המקומית. נסה רענון.', 'error');
+    return;
+  }
+  const phone = formatPhoneIntl(g.phone);
+  if (!phone) {
+    toast('אין מספר תקין לאורח הנוכחי', 'error');
+    return;
+  }
+  const { data: campMetaRows } = await supa
+    .from('message_campaigns')
+    .select('mode')
+    .eq('id', camp.id)
+    .limit(1);
+  const campMode = campMetaRows?.[0]?.mode === 'gift_reminder' ? 'gift_reminder' : 'invite';
+  const msg = campMode === 'gift_reminder' ? buildGiftReminderForGuest(g) : buildInviteMessage(g);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  await renderFreeCampaignStatus();
+}
+
+async function markFreeCampaignCurrent(result) {
+  const camp = activeFreeCampaignId ? { id: activeFreeCampaignId } : await findActiveCampaign();
+  if (!camp?.id) {
+    toast('אין קמפיין פעיל', 'error');
+    return;
+  }
+  activeFreeCampaignId = camp.id;
+  const item = await getNextQueuedItem(camp.id);
+  if (!item) {
+    toast('אין פריט בתור לעדכון', 'error');
+    return;
+  }
+  const { error: itemErr } = await supa
+    .from('message_campaign_items')
+    .update({ status: result === 'sent' ? 'sent' : 'failed' })
+    .eq('id', item.id);
+  if (itemErr) {
+    toast('שגיאה בעדכון פריט קמפיין', 'error');
+    console.error(itemErr);
+    return;
+  }
+  const { data: campRows } = await supa
+    .from('message_campaigns')
+    .select('total_sent, total_failed, total_targets')
+    .eq('id', camp.id)
+    .limit(1);
+  const c = campRows?.[0];
+  if (c) {
+    const nextSent = Number(c.total_sent || 0) + (result === 'sent' ? 1 : 0);
+    const nextFailed = Number(c.total_failed || 0) + (result === 'failed' ? 1 : 0);
+    await supa
+      .from('message_campaigns')
+      .update({ total_sent: nextSent, total_failed: nextFailed })
+      .eq('id', camp.id);
+    if ((nextSent + nextFailed) >= Number(c.total_targets || 0)) {
+      toast('קמפיין הסתיים 🎉', 'success');
+      await renderFreeCampaignStatus();
+      return;
+    }
+  }
+
+  const nextItem = await getNextQueuedItem(camp.id);
+  const nextGuest = nextItem ? allGuests.find(g => g.id === nextItem.guest_id) : null;
+  const ask = confirm(
+    `${result === 'sent' ? 'סומן כנשלח' : 'סומן כנכשל'}.\n` +
+    `לעבור לאורח הבא${nextGuest ? `: ${nextGuest.full_name}` : ''}?`
+  );
+  await renderFreeCampaignStatus();
+  if (ask) await openCurrentFreeCampaignChat();
+}
+
+async function renderFreeCampaignStatus() {
+  const el = document.getElementById('freeCampaignStatus');
+  if (!el) return;
+  const camp = activeFreeCampaignId
+    ? (await supa.from('message_campaigns').select('id, mode, total_targets, total_sent, total_failed, created_at').eq('id', activeFreeCampaignId).limit(1)).data?.[0]
+    : await findActiveCampaign();
+  if (!camp) {
+    el.innerHTML = '<div class="muted">אין קמפיין חינמי פעיל כרגע.</div>';
+    return;
+  }
+  activeFreeCampaignId = camp.id;
+  const total = Number(camp.total_targets || 0);
+  const sent = Number(camp.total_sent || 0);
+  const failed = Number(camp.total_failed || 0);
+  const done = sent + failed;
+  const left = Math.max(0, total - done);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const modeLabel = camp.mode === 'gift_reminder' ? 'תזכורת מתנה' : 'הזמנה';
+  const nextItem = await getNextQueuedItem(camp.id);
+  const g = nextItem ? allGuests.find(x => x.id === nextItem.guest_id) : null;
+  el.innerHTML = `
+    <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+      <div>
+        <strong>קמפיין חינמי פעיל: ${modeLabel}</strong>
+        <div class="muted">נשלח: ${sent} | נכשל: ${failed} | נותרו: ${left} (${pct}%)</div>
+        <div class="muted">אורח נוכחי: ${g ? escapeHtml(g.full_name) : '—'}</div>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button class="btn btn-wa btn-icon" onclick="openCurrentFreeCampaignChat()">💬 פתח שוב את ההודעה הנוכחית</button>
+        <button class="btn btn-primary btn-icon" onclick="markFreeCampaignCurrent('sent')">✅ סמן נשלח + הבא</button>
+        <button class="btn btn-danger btn-icon" onclick="markFreeCampaignCurrent('failed')">⚠️ סמן נכשל + הבא</button>
+      </div>
+    </div>
+    <div class="contact-progress-bar" style="margin-top:0.75rem;">
+      <div class="contact-progress-fill" style="width:${pct}%;"></div>
+    </div>
+  `;
+}
+
+async function exportFreeCampaignReport() {
+  const camp = activeFreeCampaignId
+    ? (await supa.from('message_campaigns').select('id, mode, created_at, filter_category, filter_side').eq('id', activeFreeCampaignId).limit(1)).data?.[0]
+    : await findActiveCampaign();
+  if (!camp) {
+    toast('אין קמפיין לדיווח', 'error');
+    return;
+  }
+  activeFreeCampaignId = camp.id;
+  const { data: items, error } = await supa
+    .from('message_campaign_items')
+    .select('guest_id, phone, status')
+    .eq('campaign_id', camp.id)
+    .order('created_at', { ascending: true });
+  if (error) {
+    toast('שגיאה בטעינת דוח', 'error');
+    console.error(error);
+    return;
+  }
+  const lines = [];
+  lines.push(`Campaign ID: ${camp.id}`);
+  lines.push(`Mode: ${camp.mode}`);
+  lines.push(`Created: ${camp.created_at}`);
+  lines.push(`Category filter: ${camp.filter_category || 'all'}`);
+  lines.push(`Side filter: ${camp.filter_side || 'all'}`);
+  lines.push('');
+  lines.push('guest_id,full_name,phone,status');
+  (items || []).forEach((it) => {
+    const g = allGuests.find(x => x.id === it.guest_id);
+    lines.push(`"${it.guest_id || ''}","${(g?.full_name || '').replace(/"/g,'""')}","${(it.phone || '').replace(/"/g,'""')}","${it.status}"`);
+  });
+  downloadTextFile(lines.join('\n'), `free-campaign-report-${exportBasenameStem()}.csv`);
+  toast('דוח קמפיין הורד', 'success');
+}
+
 
 // ═══════════════════════════════════════════════════════════════════
 // WhatsApp + SMS Bulk Contact System
@@ -1860,6 +2165,9 @@ function downloadInviteMessagesBulkFile() {
   downloadTextFile(body, `hodot-bulk-${exportBasenameStem()}.txt`);
   toast('קובץ הורד', 'success');
 }
+
+// Initial paint for campaign widget
+renderFreeCampaignStatus();
 
 </script>
 </body>
