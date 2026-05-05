@@ -697,9 +697,9 @@ tr:hover td { background: #faf7f2; }
       <!-- Bulk Contact Center -->
       <div class="card" style="margin-bottom:1rem;">
         <h2 class="serif">📨 מרכז שליחת הזמנות</h2>
-        <p class="muted" style="margin-bottom:1rem;">ליד כל אורח — WA או SMS נפתחים עם ההודעה והקישור האישי. <strong>וואטסאפ אינה תומכת בשליחה אמיתית לכל המספרים בלחיצה אחת</strong> מהדפדפן (חוסם טאבים / אין Broadcast). להמונים: ספק SMS עסקי (Twilio, 019, CELLACT וכו׳), או WhatsApp Business API.</p>
+        <p class="muted" style="margin-bottom:1rem;">קודם מוסיפים את כל רשימת האורחים, ואז שולחים לכולם מהכפתור של הקמפיין. ליד כל אורח — WA או SMS נפתחים עם ההודעה והקישור האישי. <strong>וואטסאפ אינה תומכת בשליחה אמיתית לכל המספרים בלחיצה אחת</strong> מהדפדפן (חוסם טאבים / אין Broadcast). להמונים: ספק SMS עסקי (Twilio, 019, CELLACT וכו׳), או WhatsApp Business API.</p>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
-          <button class="btn btn-wa" onclick="startFreeCampaign('invite')">🎯 התחל קמפיין חינמי (הזמנה)</button>
+          <button class="btn btn-wa" onclick="startFreeCampaign('invite')">📣 שלח הזמנה לכל הרשימה</button>
           <button class="btn btn-wa" onclick="startFreeCampaign('gift_reminder')">💛 התחל קמפיין חינמי (תזכורת מתנה)</button>
           <button class="btn btn-secondary" onclick="resumeFreeCampaign()">▶ המשך קמפיין</button>
           <button class="btn btn-secondary" onclick="exportFreeCampaignReport()">⬇ דוח קמפיין</button>
@@ -722,10 +722,6 @@ tr:hover td { background: #faf7f2; }
             <div>
               <label for="g-phone">טלפון</label>
               <input type="tel" id="g-phone" placeholder="05X-XXXXXXX">
-            </div>
-            <div>
-              <label for="g-guests-count">כמות אורחים (ברירת מחדל 1)</label>
-              <input type="number" id="g-guests-count" min="1" max="8" value="1">
             </div>
             <div>
               <label for="g-invite-side">צד הזמנה (קירבה) — קישור ביט באתר</label>
@@ -1311,14 +1307,14 @@ window.renderGuests = function() { originalRender(); updateContactProgress(); };
 // ═══════════════════════════════════════════════════════════════════
 document.getElementById('addGuestForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const gc = parseInt(document.getElementById('g-guests-count').value, 10);
-  const guests_count = Number.isFinite(gc) && gc > 0 ? Math.min(MAX_RSVP_GUESTS_ADMIN, gc) : 1;
   const payload = {
     full_name: document.getElementById('g-name').value.trim(),
     phone: document.getElementById('g-phone').value.trim() || null,
     invite_side: document.getElementById('g-invite-side').value === 'bride' ? 'bride' : 'groom',
     category: document.getElementById('g-category').value,
-    guests_count
+    rsvp_status: 'pending',
+    guests_count: 0,
+    responded_at: null
   };
   const { error } = await supa.from('guests').insert(payload);
   if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
