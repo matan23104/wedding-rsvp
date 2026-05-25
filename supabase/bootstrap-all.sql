@@ -28,7 +28,7 @@ alter table public.guests
 
 alter table public.guests
   add constraint guests_guests_count_check
-  check (guests_count between 0 and 8);
+  check (guests_count between 0 and 10);
 
 create table if not exists public.questions (
   id uuid primary key default gen_random_uuid(),

@@ -537,7 +537,7 @@ const forcedInviteSide =
     sideParamRaw === 'gro' ? 'groom' : null;
 const senderPhone = String(urlParams.get('sender') || '').replace(/\D/g, '');
 const PRIEL_ADMIN_PHONES = new Set((window.WEDDING_CONFIG && window.WEDDING_CONFIG.BRIDE_ADMIN_PHONES) || []);
-const MAX_RSVP_GUESTS = 8;
+const MAX_RSVP_GUESTS = 10;
 
 function isRpcMissing(error) {
     return !!(error && error.code === 'PGRST202');
@@ -613,20 +613,22 @@ async function init() {
     }
 
     try {
-        // Fetch guest through RPC (works with strict RLS)
+        // Fetch guest through RPC (works with strict RLS).
+        // maybeSingle() returns { data: null, error: null } for 0 rows instead of PGRST116.
         let { data, error } = await sb
             .rpc('get_guest_by_token', { p_token: guestToken })
-            .single();
+            .maybeSingle();
 
         if (isRpcMissing(error)) {
             ({ data, error } = await sb
                 .from('guests')
                 .select('*')
                 .eq('token', guestToken)
-                .single());
+                .maybeSingle());
         }
 
-        if (error || !data) throw error || new Error('Guest not found');
+        if (error) throw error;
+        if (!data) throw new Error('Guest not found');
 
         if (typeof data.rsvp_closed === 'undefined') {
             data.rsvp_closed = false;
@@ -679,8 +681,18 @@ async function init() {
         }
     } catch (err) {
         console.error('Init error:', err);
-        document.getElementById('loading-overlay').innerHTML =
-            currentLang === 'he' ? 'שגיאה בטעינה. נסו שוב.' : 'Error loading. Please try again.';
+        const loading = document.getElementById('loading-overlay');
+        if (!loading) return;
+        const isNotFound = err && err.message === 'Guest not found';
+        if (isNotFound) {
+            loading.innerHTML = currentLang === 'he'
+                ? 'הקישור אינו תקין או פג תוקף. פנו אלינו לקבלת הקישור הנכון.'
+                : 'This invitation link is invalid or expired. Please contact us.';
+        } else {
+            loading.innerHTML = currentLang === 'he'
+                ? 'שגיאה בטעינה. בדקו את החיבור לאינטרנט ונסו שוב.'
+                : 'Loading error. Check your internet connection and try again.';
+        }
     }
 }
 
