@@ -703,7 +703,7 @@ function showRsvpConfirmButton(status, count) {
     const confirmLink = document.getElementById('rsvp-wa-confirm-link');
     if (!confirmDiv || !confirmLink || !currentGuest) return;
     const msg = buildRsvpConfirmationMessage(currentGuest.full_name, status, count, currentLang);
-    confirmLink.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    confirmLink.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     confirmDiv.classList.remove('hidden');
 }
 
