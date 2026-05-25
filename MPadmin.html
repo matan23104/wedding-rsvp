@@ -757,6 +757,7 @@ tr:hover td { background: #faf7f2; }
           <button class="btn btn-secondary" onclick="exportFreeCampaignReport()">⬇ דוח קמפיין</button>
           <button class="btn btn-danger" onclick="clearFreeCampaign()">🧹 אפס קמפיין</button>
           <button class="btn btn-secondary" onclick="downloadInviteMessagesBulkFile()">⬇ הורד קובץ הודעות (כל האורחים)</button>
+          <button class="btn btn-danger" onclick="deleteAllGuests()">🗑 מחק את כל רשימת האורחים</button>
         </div>
         <p id="bit-link-banner" class="muted" style="display:none; margin-bottom:0.75rem; font-size:0.82rem;">קישור Bit שיופיע לאורחים בלינק שתשלח/י: <a id="bit-link-anchor" href="#" target="_blank" rel="noopener noreferrer" dir="ltr" style="word-break:break-all;"></a></p>
         <div id="freeCampaignStatus" class="card" style="margin:0 0 0.8rem 0; padding:1rem; background:#fcfbf8;"></div>
@@ -1741,6 +1742,15 @@ async function deleteGuest(id) {
   refreshAll();
 }
 
+async function deleteAllGuests() {
+  if (!confirm('האם אתה בטוח שברצונך למחוק את כל רשימת האורחים? פעולה זו אינה ניתנת לביטול!')) return;
+  if (!confirm('בטוח לחלוטין? כל הנתונים יימחקו לצמיתות!')) return;
+  const { error } = await supa.from('guests').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if (error) { toast('שגיאה: ' + error.message, 'error'); return; }
+  toast('כל האורחים נמחקו', 'success');
+  refreshAll();
+}
+
 async function toggleGuestInviteSide(id) {
   const g = allGuests.find(x => x.id === id);
   if (!g) return;
@@ -1818,9 +1828,8 @@ function copyLink() {
 function openWhatsApp() {
   if (!currentGuestForLink) return;
   const msg = document.getElementById('linkMessage').value;
-  const phone = (currentGuestForLink.phone || '').replace(/\D/g, '');
-  if (!phone) { toast('אין טלפון - העתק את ההודעה ידנית', 'error'); return; }
-  const intlPhone = phone.startsWith('0') ? '972' + phone.slice(1) : phone;
+  const intlPhone = formatPhoneIntl(currentGuestForLink.phone);
+  if (!intlPhone) { toast('אין טלפון - העתק את ההודעה ידנית', 'error'); return; }
   window.open(`https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
