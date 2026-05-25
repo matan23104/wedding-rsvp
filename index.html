@@ -379,7 +379,7 @@ body {
                 <div class="detail-sub" data-he="קיבוץ ברור חיל" data-en="Kibbutz Brur Hayil" data-am="ቄቡጽ ብሩር ሃይል">קיבוץ ברור חיל</div>
             </div>
         </div>
-        <a href="https://waze.com/ul?q=אולם+ארבע+עונות+קיבוץ+ברור+חיל" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
+        <a href="https://waze.com/ul?q=%D7%90%D7%95%D7%9C%D7%9D+%D7%90%D7%A8%D7%91%D7%A2+%D7%A2%D7%95%D7%A0%D7%95%D7%AA+%D7%A7%D7%99%D7%91%D7%95%D7%A5+%D7%91%D7%A8%D7%95%D7%A8+%D7%97%D7%99%D7%9C&navigate=yes" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
     </div>
 
     <div class="section-card">
@@ -462,7 +462,7 @@ body {
             <button class="gift-tab" onclick="switchGift('paybox', this)" data-he="💙 פייבוקס" data-en="💙 PayBox" data-am="💙 PayBox">💙 פייבוקס</button>
         </div>
         <div id="gift-bit" class="gift-content active">
-            <a id="bit-pay-me-btn" class="btn btn-blue hidden" style="margin-top:10px;" href="#" target="_blank" rel="noopener noreferrer">
+            <a id="bit-pay-me-btn" class="btn btn-blue hidden" style="margin-top:10px;" href="#" rel="noopener noreferrer" onclick="openBitApp(); return false;">
                 <span data-he="💸 תשלום ב-Bit (קישור אישי)" data-en="💸 Pay with Bit (personal link)" data-am="💸 በBit (የግል አገናኝ)">💸 תשלום ב-Bit (קישור אישי)</span>
             </a>
         </div>
@@ -693,13 +693,13 @@ function buildRsvpConfirmationMessage(name, status, count, lang) {
     const safeName = String(name || 'אורח/ת').trim().replace(/[<>]/g, '');
     const l = lang || 'he';
     if (status === 'coming') {
-        const n = Math.max(1, Math.min(8, Number(count) || 1));
+        const n = Math.max(1, Math.min(MAX_RSVP_GUESTS, Number(count) || 1));
         const guestSuffix = n > 1 ? (l === 'en' ? ` for ${n} guests` : ` עם ${n} אנשים`) : '';
-        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding 💍\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} 🎉`;
-        return `אישור הגעה לחתונת מתן ופריאל 💍\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} 🎉`;
+        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} \u{1F389}`;
+        return `אישור הגעה לחתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} \u{1F389}`;
     }
-    if (l === 'en') return `Matan & Priel's Wedding 💍\n28.06.2026\n\n${safeName} — unfortunately can't make it 💛`;
-    return `חתונת מתן ופריאל 💍\nיג' תמוז | 28.6.2026\n\n${safeName} — לצערי לא יוכל/תוכל להגיע 💛`;
+    if (l === 'en') return `Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} — unfortunately can't make it \u{1F49B}`;
+    return `חתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} — לצערי לא יוכל/תוכל להגיע \u{1F49B}`;
 }
 
 function showRsvpConfirmButton(status, count) {
@@ -783,7 +783,10 @@ async function submitRsvp() {
         console.log('Update success:', data);
 
         let fresh = null;
-        const r2 = await sb.rpc('get_guest_by_token', { p_token: guestToken }).single();
+        let r2 = await sb.rpc('get_guest_by_token', { p_token: guestToken }).maybeSingle();
+        if (isRpcMissing(r2.error)) {
+            r2 = await sb.from('guests').select('*').eq('token', guestToken).maybeSingle();
+        }
         if (!r2.error && r2.data) fresh = r2.data;
         if (fresh) {
             if (typeof fresh.rsvp_closed === 'undefined') fresh.rsvp_closed = false;
@@ -892,24 +895,24 @@ function wireBitPayMeButton(guest) {
     a.classList.remove('hidden');
 }
 
-function openBitApp(opts) {
-    const silent = !!(opts && opts.silent);
-    const phone = '0503838631';
+function openBitApp() {
+    const cfg = window.WEDDING_CONFIG || {};
     const bitPayMe = getBitPayMeUrl();
-    const fallbackText = `לתשלום בביט: ${phone}`;
-    // קישור אישי מ-Bit Pay (אם הוגדר) — בדרך כלל פותח את האפליקציה עם הנמען; סכום ואישור נשארים במסך Bit בלבד.
+    const brideUrl = String(cfg.BIT_PAY_ME_URL_BRIDE || '').trim();
+    const isBride = !!(brideUrl && bitPayMe === brideUrl);
+    const phone = isBride
+        ? String(cfg.BIT_PHONE_BRIDE || cfg.BIT_PHONE_GROOM || '').trim()
+        : String(cfg.BIT_PHONE_GROOM || '').trim();
+    // Opens the personal Bit Pay link; amount and confirmation stay inside the Bit app.
     window.location.href = bitPayMe || 'bit://';
-    setTimeout(() => {
-        if (silent) return;
-        navigator.clipboard?.writeText(fallbackText).catch(() => {});
-        alert(currentLang === 'he'
-            ? 'אם אפליקציית Bit לא נפתחה, מספר התשלום הועתק ללוח: 0503838631'
-            : 'If Bit app did not open, payment number was copied: 0503838631');
-    }, 900);
-}
-
-function isTouchDevice() {
-    return window.matchMedia('(pointer: coarse)').matches;
+    if (phone) {
+        setTimeout(() => {
+            navigator.clipboard?.writeText(`לתשלום בביט: ${phone}`).catch(() => {});
+            alert(currentLang === 'he'
+                ? `אם אפליקציית Bit לא נפתחה, מספר התשלום הועתק ללוח: ${phone}`
+                : `If Bit app did not open, payment number was copied: ${phone}`);
+        }, 900);
+    }
 }
 
 // ==== UI HELPERS ====
@@ -918,7 +921,6 @@ function switchGift(tab, btn) {
     document.querySelectorAll('.gift-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('gift-' + tab).classList.add('active');
-    if (tab === 'bit' && isTouchDevice()) openBitApp({ silent: true });
 }
 
 function toggleFaq(btn) {

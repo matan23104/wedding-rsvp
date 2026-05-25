@@ -1126,8 +1126,30 @@ function updateBitBanner() {
 async function fetchAdminPhone() {
   const { data, error } = await supa.auth.getUser();
   if (error || !data?.user) return;
-  currentAdminPhone = data.user.phone || data.user.user_metadata?.phone || '';
+  const u = data.user;
+  currentAdminPhone = String(
+    u.phone ||
+    u.user_metadata?.phone ||
+    u.user_metadata?.phone_number ||
+    u.identities?.[0]?.identity_data?.phone ||
+    ''
+  ).replace(/\D/g, '');
   updateBitBanner();
+
+  const warnId = 'admin-phone-warning';
+  let warn = document.getElementById(warnId);
+  if (!currentAdminPhone) {
+    if (!warn) {
+      warn = document.createElement('p');
+      warn.id = warnId;
+      warn.style.cssText = 'color:var(--danger);font-size:0.8rem;margin-top:0.4rem;';
+      const banner = document.getElementById('bit-link-banner');
+      if (banner) banner.after(warn);
+    }
+    warn.textContent = '⚠ מספר טלפון לא נמצא בחשבון הניהול — קישורים יישלחו ללא &sender= וייחוס הצד לא יפעל. הוסף טלפון בהגדרות Supabase Auth.';
+  } else if (warn) {
+    warn.remove();
+  }
 }
 
 async function bootstrapAuth() {
@@ -2126,37 +2148,37 @@ function fillMessageTemplatesExample() {
   const demoInviteVerb = demoCouple ? 'להזמינכם' : 'להזמינך';
   const demoSeeVerb = demoCouple ? 'נשמח לראותכם' : 'נשמח לראותך';
   monthEl.value =
-    `לכבוד ${demoGuestName} 🤍
+    `לכבוד ${demoGuestName} \u{1F90D}
 
 אנחנו — מתן ופריאל — מתחתנים
-בי״ג תמוז (28.6.26) שמחים ${demoInviteVerb} להשתתף בשמחתנו 🥂
+בי״ג תמוז (28.6.26) שמחים ${demoInviteVerb} להשתתף בשמחתנו \u{1F942}
 
 קישור לאישור הגעה:
 
 ${base}/
 
-${demoSeeVerb} איתנו 🤍💍`;
+${demoSeeVerb} איתנו \u{1F90D}\u{1F48D}`;
 
   giftEl.value =
-    `לכבוד: ${sanitizeGuestName(demoName)} 😊
+    `לכבוד: ${sanitizeGuestName(demoName)} \u{1F60A}
 מתרגשים ממש לראות אותך בקרוב!
 
 למי שרוצה להסדיר מתנה מראש (כדי להימנע ממעטפות באירוע), אפשר כאן:
 ${demoPersonal}
 
-נתראה בקרוב 💛`;
+נתראה בקרוב \u{1F49B}`;
 }
 
 function buildGiftReminderForGuest(g) {
   const link = `${siteBaseUrl()}/?t=${g.token}${senderParam()}`;
   const guestName = sanitizeGuestName(g.full_name);
-  return `לכבוד: ${guestName} 😊
+  return `לכבוד: ${guestName} \u{1F60A}
 מתרגשים ממש לראות אותך בקרוב!
 
 למי שרוצה להסדיר מתנה מראש (כדי להימנע ממעטפות באירוע), אפשר כאן:
 ${link}
 
-נתראה בקרוב 💛`;
+נתראה בקרוב \u{1F49B}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2608,16 +2630,16 @@ function buildInviteMessage(guest) {
   const couple = isCouple(guestName);
   const inviteVerb = couple ? 'להזמינכם' : 'להזמינך';
   const seeVerb = couple ? 'נשמח לראותכם' : 'נשמח לראותך';
-  return `לכבוד ${guestName} 🤍
+  return `לכבוד ${guestName} \u{1F90D}
 
 אנחנו — מתן ופריאל — מתחתנים
-בי״ג תמוז (28.6.26) שמחים ${inviteVerb} להשתתף בשמחתנו 🥂
+בי״ג תמוז (28.6.26) שמחים ${inviteVerb} להשתתף בשמחתנו \u{1F942}
 
 קישור לאישור הגעה:
 
 ${link}
 
-${seeVerb} איתנו 🤍💍`;
+${seeVerb} איתנו \u{1F90D}\u{1F48D}`;
 }
 
 // Fallback for SMS gateways that cannot handle Unicode: replaces emoji with plain text

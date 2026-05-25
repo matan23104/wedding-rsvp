@@ -10,5 +10,9 @@ window.WEDDING_CONFIG = {
   // ביט צד החתן (ברירת מחדל — גם לאורח בלי צד וגם למבקר בדף הציבורי)
   BIT_PAY_ME_URL: 'https://www.bitpay.co.il/app/me/CF1DF176-20C9-2FEF-B2BF-3E2C151F2D1D70E3',
   // ביט צד הכלה (כשהשדה "קירבה" באקסל/אדמין מסומן כ־כלה)
-  BIT_PAY_ME_URL_BRIDE: 'https://www.bitpay.co.il/app/me/5885C2E6-A8C2-733A-5D37-FF7C13CDC28DDE8D'
+  BIT_PAY_ME_URL_BRIDE: 'https://www.bitpay.co.il/app/me/5885C2E6-A8C2-733A-5D37-FF7C13CDC28DDE8D',
+
+  // מספרי טלפון לגיבוי אם אפליקציית Bit לא נפתחה
+  BIT_PHONE_GROOM: '0503838631',
+  BIT_PHONE_BRIDE: '0526353006'  // עדכן למספר Bit של פריאל אם שונה
 };
