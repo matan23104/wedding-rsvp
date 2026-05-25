@@ -1932,7 +1932,7 @@ function openWhatsApp() {
   const intlPhone = formatPhoneIntl(currentGuestForLink.phone);
   if (!intlPhone) { toast('אין טלפון - העתק את ההודעה ידנית', 'error'); return; }
   const msg = document.getElementById('linkMessage').value;
-  window.open(`https://api.whatsapp.com/send?phone=${intlPhone}&text=${encodeURIComponent(msg)}`, '_blank');
+  window.location.href = `https://api.whatsapp.com/send?phone=${intlPhone}&text=${encodeURIComponent(msg)}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2505,7 +2505,7 @@ async function openCurrentFreeCampaignChat() {
     .limit(1);
   const campMode = campMetaRows?.[0]?.mode === 'gift_reminder' ? 'gift_reminder' : 'invite';
   const msg = campMode === 'gift_reminder' ? buildGiftReminderForGuest(g) : buildInviteMessage(g);
-  window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`, '_blank');
+  window.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
   await renderFreeCampaignStatus();
 }
 
@@ -2774,7 +2774,7 @@ function sendWhatsApp(guestId) {
   if (!phone) { toast('אין מספר טלפון', 'error'); return; }
   const msg = buildInviteMessage(g);
   const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
+  window.location.href = url;
   markContacted(guestId);
   setTimeout(() => { renderGuests(); updateContactProgress(); }, 500);
 }
