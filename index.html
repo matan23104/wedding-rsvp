@@ -379,7 +379,7 @@ body {
                 <div class="detail-sub" data-he="קיבוץ ברור חיל" data-en="Kibbutz Brur Hayil" data-am="ቄቡጽ ብሩር ሃይል">קיבוץ ברור חיל</div>
             </div>
         </div>
-        <a href="https://waze.com/ul?q=%D7%90%D7%95%D7%9C%D7%9D+%D7%90%D7%A8%D7%91%D7%A2+%D7%A2%D7%95%D7%A0%D7%95%D7%AA+%D7%A7%D7%99%D7%91%D7%95%D7%A5+%D7%91%D7%A8%D7%95%D7%A8+%D7%97%D7%99%D7%9C&navigate=yes" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
+        <a href="https://waze.com/ul?ll=31.5617,34.5882&navigate=yes" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
     </div>
 
     <div class="section-card">
@@ -458,7 +458,7 @@ body {
             <button class="gift-tab" onclick="switchGift('paybox', this)" data-he="💙 פייבוקס" data-en="💙 PayBox" data-am="💙 PayBox">💙 פייבוקס</button>
         </div>
         <div id="gift-bit" class="gift-content active">
-            <a id="bit-pay-me-btn" class="btn btn-blue hidden" style="margin-top:10px;" href="#" rel="noopener noreferrer" onclick="openBitApp(); return false;">
+            <a id="bit-pay-me-btn" class="btn btn-blue hidden" style="margin-top:10px;" href="#" target="_blank" rel="noopener noreferrer" onclick="openBitApp(); return false;">
                 <span data-he="💸 תשלום ב-Bit (קישור אישי)" data-en="💸 Pay with Bit (personal link)" data-am="💸 በBit (የግል አገናኝ)">💸 תשלום ב-Bit (קישור אישי)</span>
             </a>
         </div>
@@ -691,8 +691,8 @@ function buildRsvpConfirmationMessage(name, status, count, lang) {
     if (status === 'coming') {
         const n = Math.max(1, Math.min(MAX_RSVP_GUESTS, Number(count) || 1));
         const guestSuffix = n > 1 ? (l === 'en' ? ` for ${n} guests` : ` עם ${n} אנשים`) : '';
-        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} \u{1F389}`;
-        return `אישור הגעה לחתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} \u{1F389}`;
+        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} \u{1F389}\u{1F90D}\u{2728}`;
+        return `אישור הגעה לחתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} \u{1F389}\u{1F90D}\u{2728}`;
     }
     if (l === 'en') return `Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} — unfortunately can't make it \u{1F49B}`;
     return `חתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} — לצערי לא יוכל/תוכל להגיע \u{1F49B}`;
@@ -897,7 +897,7 @@ function openBitApp() {
     const brideUrl = String(cfg.BIT_PAY_ME_URL_BRIDE || '').trim();
     const isBride = !!(brideUrl && bitPayMe === brideUrl);
     const phone = isBride
-        ? String(cfg.BIT_PHONE_BRIDE || cfg.BIT_PHONE_GROOM || '').trim()
+        ? String(cfg.BIT_PHONE_BRIDE || '0526353006').trim()
         : String(cfg.BIT_PHONE_GROOM || '').trim();
     window.open(bitPayMe || 'bit://', '_blank', 'noopener,noreferrer');
     if (phone) {
