@@ -859,8 +859,8 @@ tr:hover td { background: #faf7f2; }
               <input type="text" id="g-name" required>
             </div>
             <div>
-              <label for="g-phone">טלפון נייד (חובה) *</label>
-              <input type="tel" id="g-phone" required placeholder="05XXXXXXXX">
+              <label for="g-phone">טלפון (חובה) *</label>
+              <input type="tel" id="g-phone" required placeholder="05XXXXXXXX / +44...">
             </div>
             <div>
               <label for="g-invite-side">צד הזמנה (קירבה) — קישור ביט באתר</label>
@@ -1735,7 +1735,7 @@ function renderGuests() {
         <input id="row-name-${g.id}" class="form-input" value="${escapeHtml(g.full_name)}" />
       </td>
       <td>
-        <input id="row-phone-${g.id}" class="form-input" value="${escapeHtml(g.phone || '')}" placeholder="05XXXXXXXX" dir="ltr" />
+        <input id="row-phone-${g.id}" class="form-input" value="${escapeHtml(g.phone || '')}" placeholder="05XXXXXXXX / +44..." dir="ltr" />
       </td>
       <td>
         <select id="row-side-${g.id}" class="form-input">
@@ -1807,11 +1807,11 @@ document.getElementById('addGuestForm').addEventListener('submit', async (e) => 
   }
   const phoneRaw = document.getElementById('g-phone').value.trim();
   if (!phoneRaw) {
-    toast('מספר טלפון נייד הוא חובה', 'error');
+    toast('מספר טלפון הוא חובה', 'error');
     return;
   }
-  if (!isValidIsraelMobile(phoneRaw)) {
-    toast('מספר טלפון לא מזוהה כנייד ישראלי תקין (05XXXXXXXX או 9725...)', 'error');
+  if (!isValidPhone(phoneRaw)) {
+    toast('מספר טלפון לא תקין (נדרש לפחות 7 ספרות)', 'error');
     return;
   }
   if (!category) {
@@ -1872,11 +1872,11 @@ async function saveGuestRow(id) {
   const resolvedCat = getResolvedCategoryFromDom(id);
   const phoneRaw = (document.getElementById(`row-phone-${id}`)?.value || '').trim();
   if (!phoneRaw) {
-    toast('מספר טלפון נייד הוא חובה', 'error');
+    toast('מספר טלפון הוא חובה', 'error');
     return;
   }
-  if (!isValidIsraelMobile(phoneRaw)) {
-    toast('מספר טלפון לא מזוהה כנייד ישראלי תקין', 'error');
+  if (!isValidPhone(phoneRaw)) {
+    toast('מספר טלפון לא תקין', 'error');
     return;
   }
   const payload = {
@@ -2002,15 +2002,19 @@ function normalizeSide(cell) {
   return 'groom';
 }
 
-function isValidIsraelMobile(cell) {
-  const d = String(cell || '').replace(/\D/g, '');
-  return /^05[0-9]{8}$/.test(d) || /^9725[0-9]{8}$/.test(d);
+function isValidPhone(cell) {
+  const digits = String(cell || '').replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15;
 }
 
-/** loose match for CSV column detection — still accepts broader patterns */
-function looksLikeIsraeliPhone(cell) {
-  return isValidIsraelMobile(cell);
+/** loose match for CSV column auto-detection */
+function looksLikePhone(cell) {
+  return isValidPhone(cell);
 }
+
+// Backward-compat aliases (old name still works)
+const isValidIsraelMobile = isValidPhone;
+const looksLikeIsraeliPhone = looksLikePhone;
 
 function columnMapFromHeader(row) {
   if (!row || !row.length) return null;
@@ -2278,7 +2282,7 @@ function passesCampaignRsvpRules(g, mode, includePending) {
 }
 
 function passesCampaignWaPhone(g) {
-  return !!(g.phone && isValidIsraelMobile(g.phone) && formatPhoneIntl(g.phone));
+  return !!(g.phone && formatPhoneIntl(g.phone));
 }
 
 function buildFreeCampaignQueue(mode) {
@@ -2316,8 +2320,7 @@ function collectCampaignInvalidGuests(queue) {
     const reasons = [];
     if (!g.full_name || String(g.full_name).trim().length < 2) reasons.push('שם');
     if (!g.category || !String(g.category).trim()) reasons.push('קטגוריה');
-    if (!isValidIsraelMobile(g.phone)) reasons.push('טלפון נייד');
-    if (!formatPhoneIntl(g.phone)) reasons.push('WA');
+    if (!formatPhoneIntl(g.phone)) reasons.push('טלפון');
     if (reasons.length) out.push({ g, reasons });
   }
   return out;
@@ -2703,18 +2706,35 @@ function stripEmojis(text) {
   return text.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\uD800-\uDBFF][\uDC00-\uDFFF]/gu, '');
 }
 
-// Format phone for wa.me (international format)
+// Format phone for WhatsApp API: digits only with country code, no '+'.
+// Handles Israeli local (05X), Israeli intl (972/+972), and any
+// international number written with '+' prefix or 00 dialling prefix.
 function formatPhoneIntl(phone) {
-  const digits = (phone || '').replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.startsWith('972')) return digits;
-  if (digits.startsWith('0')) return '972' + digits.slice(1);
-  return '972' + digits;
+  const raw = String(phone || '').trim();
+  if (!raw) return null;
+  const digits = raw.replace(/\D/g, '');
+  if (!digits || digits.length < 7) return null;
+  if (raw.startsWith('+')) return digits;                              // +CC... → strip '+'
+  if (raw.startsWith('00')) return digits.slice(2);                   // 00CC... → strip '00'
+  if (digits.startsWith('972') && digits.length >= 11) return digits; // 972-05X intl
+  if (digits.startsWith('0') && digits.length === 10) return '972' + digits.slice(1); // 05X local
+  if (digits.length === 9 && digits.startsWith('5')) return '972' + digits; // 5X bare
+  if (digits.length >= 10 && !digits.startsWith('0')) return digits;  // other intl CC already present
+  if (digits.startsWith('5') && digits.length >= 7) return '972' + digits; // short Israeli
+  return null;
 }
 
-// Format phone for SMS (local format)
+// Format phone for the native SMS app.
+// Returns local Israeli format for Israeli numbers; keeps '+CC' for international.
 function formatPhoneLocal(phone) {
-  return (phone || '').replace(/\D/g, '');
+  const raw = String(phone || '').trim();
+  if (!raw) return '';
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (raw.startsWith('+')) return '+' + digits;                        // international with +
+  if (raw.startsWith('00')) return '+' + digits.slice(2);             // 00CC... → +CC...
+  if (digits.startsWith('972') && digits.length >= 11) return '0' + digits.slice(3); // → 05X
+  return digits;                                                       // already local or bare digits
 }
 
 // Check if guest was already contacted (localStorage)
@@ -2916,15 +2936,28 @@ let importRows = [];
 /** Original header names from the file */
 let importHeaders = [];
 
-/** Normalize an Israeli phone number: strip non-digits, ensure it starts with +972 digits */
+/** Normalize a phone number to a canonical storage form.
+ *  Israeli numbers → local format 05XXXXXXXX.
+ *  International numbers with + or 00 prefix → +CCNUMBER.
+ *  Used by the import flow for deduplication and storage. */
 function normalizePhone(raw) {
-  const digits = String(raw || '').replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.startsWith('972')) return digits;
-  if (digits.startsWith('0')) return '972' + digits.slice(1);
-  // bare 5x-xxxxxxx without leading 0
-  if (digits.length === 9 && digits.startsWith('5')) return '972' + digits;
-  return digits.length >= 10 ? digits : null;
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  const digits = s.replace(/\D/g, '');
+  if (!digits || digits.length < 7) return null;
+  // Explicit international prefix — handle + or 00
+  const intlDigits = s.startsWith('+') ? digits : s.startsWith('00') ? digits.slice(2) : null;
+  if (intlDigits !== null) {
+    // +972 / 00972 → Israeli local 05X
+    if (intlDigits.startsWith('972') && intlDigits.length >= 11) return '0' + intlDigits.slice(3);
+    return intlDigits.length >= 7 && intlDigits.length <= 15 ? '+' + intlDigits : null;
+  }
+  // No explicit prefix
+  if (digits.startsWith('972') && digits.length >= 11) return '0' + digits.slice(3); // → 05X
+  if (digits.startsWith('0') && digits.length === 10) return digits;                 // already 05X
+  if (digits.length === 9 && digits.startsWith('5')) return '0' + digits;            // 5X → 05X
+  if (digits.length >= 10 && !digits.startsWith('0')) return digits;                 // other intl
+  return digits.length >= 7 ? digits : null;
 }
 
 /** Open the import modal and reset to step 1 */
@@ -3103,7 +3136,7 @@ async function doImport() {
       const name = sanitizeGuestName(rawName);
 
       const phone = normalizePhone(raw);
-      if (raw && !isValidIsraelMobile(phone || raw)) {
+      if (raw && !isValidPhone(phone || raw)) {
         failures.push({ row, reason: `מספר טלפון לא תקין: "${raw}"` });
         continue;
       }
