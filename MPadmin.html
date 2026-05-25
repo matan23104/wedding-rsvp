@@ -2774,6 +2774,12 @@ function sendWhatsApp(guestId) {
   if (!phone) { toast('אין מספר טלפון', 'error'); return; }
   const msg = buildInviteMessage(g);
   const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+  if (g.rsvp_status === 'not_invited') {
+    g.rsvp_status = 'pending';
+    supa.from('guests').update({ rsvp_status: 'pending' }).eq('id', guestId).eq('rsvp_status', 'not_invited').then(() => {}).catch(() => {});
+    renderOverview();
+    renderGuests();
+  }
   window.location.href = url;
   markContacted(guestId);
   setTimeout(() => { renderGuests(); updateContactProgress(); }, 500);
@@ -2792,6 +2798,12 @@ function sendSMS(guestId) {
   if (!phone) { toast('אין מספר טלפון', 'error'); return; }
   const msg = buildInviteMessage(g);
   const url = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+  if (g.rsvp_status === 'not_invited') {
+    g.rsvp_status = 'pending';
+    supa.from('guests').update({ rsvp_status: 'pending' }).eq('id', guestId).eq('rsvp_status', 'not_invited').then(() => {}).catch(() => {});
+    renderOverview();
+    renderGuests();
+  }
   window.open(url, '_blank');
   markContacted(guestId);
   setTimeout(() => { renderGuests(); updateContactProgress(); }, 500);
