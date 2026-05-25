@@ -537,7 +537,7 @@ const forcedInviteSide =
     sideParamRaw === 'gro' ? 'groom' : null;
 const senderPhone = String(urlParams.get('sender') || '').replace(/\D/g, '');
 const PRIEL_ADMIN_PHONES = new Set((window.WEDDING_CONFIG && window.WEDDING_CONFIG.BRIDE_ADMIN_PHONES) || []);
-const MAX_RSVP_GUESTS = 10;
+const MAX_RSVP_GUESTS = 8;
 
 function isRpcMissing(error) {
     return !!(error && error.code === 'PGRST202');
