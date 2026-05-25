@@ -1827,9 +1827,9 @@ function copyLink() {
 
 function openWhatsApp() {
   if (!currentGuestForLink) return;
-  const msg = document.getElementById('linkMessage').value;
   const intlPhone = formatPhoneIntl(currentGuestForLink.phone);
   if (!intlPhone) { toast('אין טלפון - העתק את ההודעה ידנית', 'error'); return; }
+  const msg = document.getElementById('linkMessage').value;
   window.open(`https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
