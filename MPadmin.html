@@ -1022,7 +1022,7 @@ const CATEGORY_PRESETS = [
 ];
 const CATEGORY_OTHER = '__other__';
 
-const PRIEL_ADMIN_PHONES = new Set(['0526353006', '0545691744', '0523604474', '0542572587']);
+const PRIEL_ADMIN_PHONES = new Set((window.WEDDING_CONFIG && window.WEDDING_CONFIG.BRIDE_ADMIN_PHONES) || []);
 let currentAdminPhone = '';
 
 let statusPieChart = null;
@@ -1139,6 +1139,7 @@ async function fetchAdminPhone() {
   const warnId = 'admin-phone-warning';
   let warn = document.getElementById(warnId);
   if (!currentAdminPhone) {
+    toast('⚠ מספר טלפון לא נמצא בחשבון — קישורי הזמנה יישלחו ללא ייחוס צד', 'error');
     if (!warn) {
       warn = document.createElement('p');
       warn.id = warnId;
@@ -2135,38 +2136,14 @@ function copyEl(id) {
 }
 
 function fillMessageTemplatesExample() {
-  const base = siteBaseUrl();
-  const demoName = allGuests.length ? allGuests[0].full_name : 'שם מהאקסל';
-  const demoPersonal = allGuests.length && allGuests[0].token
-    ? `${base}/?t=${allGuests[0].token}`
-    : `${base}/?t=הטוקן_של_האורח`;
   const monthEl = document.getElementById('tpl-month-before');
   const giftEl = document.getElementById('tpl-gift-reminder');
   if (!monthEl || !giftEl) return;
-  const demoGuestName = sanitizeGuestName(demoName);
-  const demoCouple = isCouple(demoGuestName);
-  const demoInviteVerb = demoCouple ? 'להזמינכם' : 'להזמינך';
-  const demoSeeVerb = demoCouple ? 'נשמח לראותכם' : 'נשמח לראותך';
-  monthEl.value =
-    `לכבוד ${demoGuestName} \u{1F90D}
-
-אנחנו — מתן ופריאל — מתחתנים
-בי״ג תמוז (28.6.26) שמחים ${demoInviteVerb} להשתתף בשמחתנו \u{1F942}
-
-קישור לאישור הגעה:
-
-${base}/
-
-${demoSeeVerb} איתנו \u{1F90D}\u{1F48D}`;
-
-  giftEl.value =
-    `לכבוד: ${sanitizeGuestName(demoName)} \u{1F60A}
-מתרגשים ממש לראות אותך בקרוב!
-
-למי שרוצה להסדיר מתנה מראש (כדי להימנע ממעטפות באירוע), אפשר כאן:
-${demoPersonal}
-
-נתראה בקרוב \u{1F49B}`;
+  const demoGuest = (allGuests.length && allGuests[0].token)
+    ? allGuests[0]
+    : { full_name: 'שם מהאקסל', token: 'הטוקן_של_האורח', id: 'demo' };
+  monthEl.value = buildInviteMessage(demoGuest);
+  giftEl.value = buildGiftReminderForGuest(demoGuest);
 }
 
 function buildGiftReminderForGuest(g) {

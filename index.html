@@ -420,10 +420,6 @@ body {
                         <label class="form-label" data-he="שם מלא" data-en="Full name" data-am="ሙሉ ስም">שם מלא</label>
                         <input type="text" id="manual-name" class="form-input" placeholder="הכניסו שם מלא">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" data-he="טלפון" data-en="Phone" data-am="ስልክ">טלפון</label>
-                        <input type="tel" id="manual-phone" class="form-input" placeholder="05X-XXXXXXX" dir="ltr">
-                    </div>
                 </div>
 
                 <button class="btn btn-gold" onclick="submitRsvp()" id="rsvp-submit-btn" style="margin-top:8px">
@@ -450,7 +446,7 @@ body {
     <div class="section-card">
         <div class="section-title" data-he="🚗 טרמפים" data-en="🚗 Carpools" data-am="🚗 መኪና መጋራት">🚗 טרמפים</div>
         <p style="text-align:center; margin-bottom:16px; font-size:0.95rem; opacity:0.8;" data-he="הצטרפו לקבוצת הטרמפים שלנו בוואטסאפ" data-en="Join our WhatsApp carpool group" data-am="ወደ WhatsApp የመኪና ቡድናችን ይቀላቀሉ">הצטרפו לקבוצת הטרמפים שלנו בוואטסאפ</p>
-        <a href="https://chat.whatsapp.com/HEj7WndGK765qNHgzoTrgG?mode=gi_t" target="_blank" class="btn btn-green">
+        <a href="https://chat.whatsapp.com/HEj7WndGK765qNHgzoTrgG" target="_blank" class="btn btn-green">
             <span data-he="הצטרף לקבוצת טרמפים 🚗" data-en="Join Carpool Group 🚗" data-am="ወደ ቡድን ይቀላቀሉ 🚗">הצטרף לקבוצת טרמפים 🚗</span>
         </a>
     </div>
@@ -540,7 +536,7 @@ const forcedInviteSide =
     sideParamRaw === 'bri' ? 'bride' :
     sideParamRaw === 'gro' ? 'groom' : null;
 const senderPhone = String(urlParams.get('sender') || '').replace(/\D/g, '');
-const PRIEL_ADMIN_PHONES = new Set(['0526353006', '0545691744', '0523604474', '0542572587']);
+const PRIEL_ADMIN_PHONES = new Set((window.WEDDING_CONFIG && window.WEDDING_CONFIG.BRIDE_ADMIN_PHONES) || []);
 const MAX_RSVP_GUESTS = 8;
 
 function isRpcMissing(error) {
@@ -903,8 +899,7 @@ function openBitApp() {
     const phone = isBride
         ? String(cfg.BIT_PHONE_BRIDE || cfg.BIT_PHONE_GROOM || '').trim()
         : String(cfg.BIT_PHONE_GROOM || '').trim();
-    // Opens the personal Bit Pay link; amount and confirmation stay inside the Bit app.
-    window.location.href = bitPayMe || 'bit://';
+    window.open(bitPayMe || 'bit://', '_blank', 'noopener,noreferrer');
     if (phone) {
         setTimeout(() => {
             navigator.clipboard?.writeText(`לתשלום בביט: ${phone}`).catch(() => {});

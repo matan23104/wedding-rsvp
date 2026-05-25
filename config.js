@@ -14,5 +14,9 @@ window.WEDDING_CONFIG = {
 
   // מספרי טלפון לגיבוי אם אפליקציית Bit לא נפתחה
   BIT_PHONE_GROOM: '0503838631',
-  BIT_PHONE_BRIDE: '0526353006'  // עדכן למספר Bit של פריאל אם שונה
+  BIT_PHONE_BRIDE: '0526353006',  // עדכן למספר Bit של פריאל אם שונה
+
+  // Admin phones belonging to the bride's side — used to auto-select the bride Bit URL
+  // when an admin sends an invite link. Update here; both index.html and MPadmin.html read this.
+  BRIDE_ADMIN_PHONES: ['0526353006', '0545691744', '0523604474', '0542572587']
 };

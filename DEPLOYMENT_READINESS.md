@@ -4,7 +4,7 @@
 
 - Replaced admin client-side password with Supabase Auth login in `MPadmin.html`.
 - Removed plain-text `ADMIN_PASSWORD` from `config.js`.
-- Switched public RSVP/question operations in `index.html` and `rsvp-connector.js` to RPC calls.
+- Switched public RSVP/question operations in `index.html` to RPC calls (with direct `.from('guests')` fallback). `rsvp-connector.js` was a dead file (never loaded) and has been removed.
 - Added `supabase/rls-policies.sql` to enforce strict table RLS and expose only safe public RPCs.
 
 ## One-time setup in Supabase (required)
