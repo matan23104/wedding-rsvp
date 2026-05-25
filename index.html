@@ -379,7 +379,7 @@ body {
                 <div class="detail-sub" data-he="קיבוץ ברור חיל" data-en="Kibbutz Brur Hayil" data-am="ቄቡጽ ብሩር ሃይል">קיבוץ ברור חיל</div>
             </div>
         </div>
-        <a href="https://waze.com/ul?q=אולם ארבע עונות קיבוץ ברור חיל&navigate=yes" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
+        <a href="https://waze.com/ul?q=אולם ארבע עונות קיבוץ ברור חיל&amp;navigate=yes" target="_blank" class="btn btn-blue" style="margin-top:16px" data-he="נווט ב-Waze 📍" data-en="Navigate with Waze 📍" data-am="በWaze ጉዞ ጀምር 📍">נווט ב-Waze 📍</a>
     </div>
 
     <div class="section-card">
@@ -691,11 +691,11 @@ function buildRsvpConfirmationMessage(name, status, count, lang) {
     if (status === 'coming') {
         const n = Math.max(1, Math.min(MAX_RSVP_GUESTS, Number(count) || 1));
         const guestSuffix = n > 1 ? (l === 'en' ? ` for ${n} guests` : ` עם ${n} אנשים`) : '';
-        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} \u{1F389}\u{1F90D}\u{2728}`;
-        return `אישור הגעה לחתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} \u{1F389}\u{1F90D}\u{2728}`;
+        if (l === 'en') return `RSVP Confirmation — Matan & Priel's Wedding 💍\n28.06.2026\n\n${safeName} confirmed attendance${guestSuffix} 🎉🤍✨`;
+        return `אישור הגעה לחתונת מתן ופריאל 💍\nיג' תמוז | 28.6.2026\n\n${safeName} מגיע/ה${guestSuffix} 🎉🤍✨`;
     }
-    if (l === 'en') return `Matan & Priel's Wedding \u{1F48D}\n28.06.2026\n\n${safeName} — unfortunately can't make it \u{1F49B}`;
-    return `חתונת מתן ופריאל \u{1F48D}\nיג' תמוז | 28.6.2026\n\n${safeName} — לצערי לא יוכל/תוכל להגיע \u{1F49B}`;
+    if (l === 'en') return `Matan & Priel's Wedding 💍\n28.06.2026\n\n${safeName} — unfortunately can't make it 💛`;
+    return `חתונת מתן ופריאל 💍\nיג' תמוז | 28.6.2026\n\n${safeName} — לצערי לא יוכל/תוכל להגיע 💛`;
 }
 
 function showRsvpConfirmButton(status, count) {
